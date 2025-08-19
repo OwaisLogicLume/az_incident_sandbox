@@ -1,0 +1,35 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "azi-push-notifications",
+          "appId": "1:360954831012:android:fefac4636f5cee13a64631",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "azi-push-notifications",
+          "configurations": {
+            "android": "1:360954831012:android:fefac4636f5cee13a64631",
+            "ios": "1:360954831012:ios:19028ac4d7b29e6ca64631"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+/Users/dds/Downloads/incident_app 2/android/app/.cxx/RelWithDebInfo/5w174z4q/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/Users/dds/Downloads/incident_app 2/android/app/.cxx/RelWithDebInfo/5w174z4q/arm64-v8a/CMakeFiles/edit_cache.dir

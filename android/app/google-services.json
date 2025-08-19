@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "360954831012",
+    "project_id": "azi-push-notifications",
+    "storage_bucket": "azi-push-notifications.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:360954831012:android:fefac4636f5cee13a64631",
+        "android_client_info": {
+          "package_name": "com.arizona.azincidentalert"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuiG1NKI328Z0gzHAGUfTLQErj_QbxBn4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
