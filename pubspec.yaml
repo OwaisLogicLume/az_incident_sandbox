@@ -1,7 +1,6 @@
 name: az_incident_alert
 description: "A new Flutter project."
 publish_to: "none"
-
 version: 1.0.0+15
 
 environment:
@@ -43,6 +42,8 @@ dependencies:
   image: ^4.5.4
   firebase_database: ^11.3.6
   cloud_functions: ^5.5.1
+  firebase_crashlytics: ^4.3.10
+  firebase_analytics:
   
 
 dev_dependencies:
@@ -57,7 +58,7 @@ flutter:
 
   assets:
     - assets/images/
-    - .env
+    - env
 
     
 

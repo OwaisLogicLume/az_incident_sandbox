@@ -1,21 +1,18 @@
-import 'dart:async';
 import 'dart:developer';
 
 import 'package:az_incident_alert/providers/app_provider.dart';
 import 'package:az_incident_alert/providers/incidents_provider.dart';
+import 'package:az_incident_alert/utils/app_colors.dart';
 import 'package:az_incident_alert/utils/app_router.dart';
 import 'package:az_incident_alert/utils/extensions/context_ext.dart';
-import 'package:az_incident_alert/widgets/incident_tile.dart';
-import 'package:az_incident_alert/widgets/app_scaffold.dart';
-import 'package:az_incident_alert/utils/app_colors.dart';
 import 'package:az_incident_alert/utils/styles.dart';
+import 'package:az_incident_alert/widgets/app_scaffold.dart';
+import 'package:az_incident_alert/widgets/incident_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class IncidencesScreen extends StatefulWidget {
   const IncidencesScreen({super.key});
@@ -28,12 +25,11 @@ class _IncidencesScreenState extends State<IncidencesScreen> {
   @override
   void initState() {
     super.initState();
-  
+    // logEvent();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<IncidentsProvider>().getIncidents(
             onSuccess: () => log('Initial incidents fetched successfully'),
             onError: (error) => log('Error fetching initial incidents: $error'),
-            
           );
     });
   }
@@ -43,6 +39,12 @@ class _IncidencesScreenState extends State<IncidencesScreen> {
     return Consumer<IncidentsProvider>(builder: (context, provider, _) {
       return AppScaffold(
         appbarActions: [
+          // IconButton(
+          //   onPressed: () {
+          //     logEvent();
+          //   },
+          //   icon: const Icon(Icons.remove),
+          // ),
           IconButton(
             onPressed: () {
               context.pushNamed(AppRoute.alertScreen.name);

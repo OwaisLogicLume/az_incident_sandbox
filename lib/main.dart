@@ -1,48 +1,29 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
-import 'package:az_incident_alert/firebase_options.dart';
-import 'package:az_incident_alert/services/firabse_service.dart';
-import 'package:az_incident_alert/services/push_notification_service.dart';
-import 'package:az_incident_alert/utils/shared_prefs.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:az_incident_alert/providers/incidents_provider.dart';
-import 'package:az_incident_alert/providers/app_provider.dart';
-import 'package:az_incident_alert/services/base_api_service.dart';
-import 'package:az_incident_alert/services/incident_service.dart';
-import 'package:az_incident_alert/utils/app_themes.dart';
-import 'package:az_incident_alert/utils/app_router.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-// import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
 
-import 'dart:async';
-import 'dart:developer';
-import 'dart:io';
 import 'package:az_incident_alert/firebase_options.dart';
+import 'package:az_incident_alert/providers/app_provider.dart';
+import 'package:az_incident_alert/providers/incidents_provider.dart';
+import 'package:az_incident_alert/services/base_api_service.dart';
 import 'package:az_incident_alert/services/firabse_service.dart';
+import 'package:az_incident_alert/services/incident_service.dart';
 import 'package:az_incident_alert/services/push_notification_service.dart';
+import 'package:az_incident_alert/utils/app_router.dart';
+import 'package:az_incident_alert/utils/app_themes.dart';
 import 'package:az_incident_alert/utils/shared_prefs.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:az_incident_alert/providers/incidents_provider.dart';
-import 'package:az_incident_alert/providers/app_provider.dart';
-import 'package:az_incident_alert/services/base_api_service.dart';
-import 'package:az_incident_alert/services/incident_service.dart';
-import 'package:az_incident_alert/utils/app_themes.dart';
-import 'package:az_incident_alert/utils/app_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'dart:ui' as ui;
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,16 +34,15 @@ Future<void> main() async {
 
 Future<void> setup() async {
   try {
-    final file = File('.env');
-    log('Checking .env file exists: ${file.existsSync()}');
+    final file = File('env');
+    log('Checking env file exists: ${file.existsSync()}');
     log('File path: ${file.absolute.path}');
-
-    await dotenv.load(fileName: '.env');
+    await dotenv.load(fileName: 'env');
     log('Environment variables loaded successfully');
 
     final mapboxToken = dotenv.env['ACCESS_MAP_TOKEN'];
     if (mapboxToken == null || mapboxToken.isEmpty) {
-      throw Exception('ACCESS_MAP_TOKEN is missing in .env file');
+      throw Exception('ACCESS_MAP_TOKEN is missing in env file');
     }
     MapboxOptions.setAccessToken(mapboxToken);
   } catch (e, stackTrace) {
@@ -77,9 +57,30 @@ Future<void> _initializeCoreApp() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  //initialize Firebase Crashlytics
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
   await NotificationService.init();
   await _getDeviceId();
   await FirebaseService.instance.init();
+
+  FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  // Example: log startup event
+  Future<void> logEvent() async {
+    await analytics.logEvent(
+      name: 'test_event',
+      parameters: {
+        'string_param': 'hello',
+        'int_param': 42,
+      },
+    );
+  }
 }
 
 Future<void> _getDeviceId() async {
@@ -111,7 +112,7 @@ class MyApp extends StatelessWidget {
         DeviceOrientation.portraitUp,
       ],
     );
-
+    final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<IncidentsProvider>(
@@ -121,13 +122,13 @@ class MyApp extends StatelessWidget {
           create: (_) => AppProvider(),
         ),
       ],
-      child: buildMyapp(),
+      child: buildMyapp(analytics),
     );
   }
 
-  Widget buildMyapp() => ScreenUtilInit(
+  Widget buildMyapp(var analytics) => ScreenUtilInit(
         ensureScreenSize: true,
-        designSize: ui.Size(390, 844),
+        designSize: const ui.Size(390, 844),
         builder: (context, child) =>
             Consumer<AppProvider>(builder: (context, provider, _) {
           return MaterialApp.router(
@@ -137,106 +138,16 @@ class MyApp extends StatelessWidget {
             darkTheme: AppThemes.darkTheme,
             routerConfig: AppNavigator.router,
             debugShowCheckedModeBanner: false,
+            builder: (context, child) {
+              return Navigator(
+                observers: [
+                  FirebaseAnalyticsObserver(analytics: analytics),
+                ],
+                onGenerateRoute: (_) =>
+                    MaterialPageRoute(builder: (_) => child!),
+              );
+            },
           );
         }),
       );
 }
-
-// import 'dart:async';
-// import 'dart:developer';
-// import 'dart:io';
-// import 'package:az_incident_alert/firebase_options.dart';
-// import 'package:az_incident_alert/services/firabse_service.dart';
-// import 'package:az_incident_alert/services/push_notification_service.dart';
-// import 'package:az_incident_alert/utils/shared_prefs.dart';
-// import 'package:device_info_plus/device_info_plus.dart';
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:flutter/material.dart';
-// import 'package:az_incident_alert/providers/incidents_provider.dart';
-// import 'package:az_incident_alert/providers/app_provider.dart';
-// import 'package:az_incident_alert/services/base_api_service.dart';
-// import 'package:az_incident_alert/services/incident_service.dart';
-// import 'package:az_incident_alert/utils/app_themes.dart';
-// import 'package:az_incident_alert/utils/app_router.dart';
-// import 'package:flutter/services.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:provider/provider.dart';
-
-// Future<void> main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await _initializeCoreApp();
-
-//   runApp(const MyApp());
-// }
-
-// _initializeCoreApp() async {
-//   await BaseRepository.instance.initialize();
-//   await SharedPrefs.instance.init();
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
-//   await NotificationService.init();
-//   await _getDeviceId();
-//   await FirebaseService.instance.init();
-// }
-
-// Future<void> _getDeviceId() async {
-//   log('shared prefs device id => ${SharedPrefs.instance.deviceId}');
-//   if (SharedPrefs.instance.deviceId != null) return;
-//   var deviceInfo = DeviceInfoPlugin();
-//   String? deviceId;
-
-//   if (Platform.isIOS) {
-//     var iosDeviceInfo = await deviceInfo.iosInfo;
-//     deviceId = iosDeviceInfo.identifierForVendor;
-//   } else if (Platform.isAndroid) {
-//     var androidDeviceInfo = await deviceInfo.androidInfo;
-//     deviceId = androidDeviceInfo.id;
-//   }
-//   log('Device Id : $deviceId');
-
-//   SharedPrefs.instance.setDeviceId(deviceId ?? "");
-// }
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     SystemChrome.setPreferredOrientations(
-//       [
-//         DeviceOrientation.portraitDown,
-//         DeviceOrientation.portraitUp,
-//       ],
-//     );
-
-//     return MultiProvider(
-//       providers: [
-//         ChangeNotifierProvider<IncidentsProvider>(
-//           create: (_) =>
-//               IncidentsProvider(IncidentService.instance)..getAllStations(),
-//         ),
-//         ChangeNotifierProvider<AppProvider>(
-//           create: (_) => AppProvider(),
-//         ),
-//       ],
-//       child: buildMyapp(),
-//     );
-//   }
-
-//   Widget buildMyapp() => ScreenUtilInit(
-//         ensureScreenSize: true,
-//         designSize: const Size(390, 844),
-//         builder: (context, child) =>
-//             Consumer<AppProvider>(builder: (context, provider, _) {
-//           return MaterialApp.router(
-//             title: 'Incidence App',
-//             themeMode: provider.currentThemeMode,
-//             theme: AppThemes.lightTheme,
-//             darkTheme: AppThemes.darkTheme,
-//             routerConfig: AppNavigator.router,
-//             debugShowCheckedModeBanner: false,
-//           );
-//         }),
-//       );
-// }

@@ -1,9 +1,7 @@
 import 'dart:developer';
 
 import 'package:az_incident_alert/providers/incidents_provider.dart';
-import 'package:az_incident_alert/services/firabse_service.dart';
 import 'package:az_incident_alert/utils/app_colors.dart';
-import 'package:az_incident_alert/utils/app_constants.dart';
 import 'package:az_incident_alert/utils/extensions/context_ext.dart';
 import 'package:az_incident_alert/utils/styles.dart';
 import 'package:az_incident_alert/widgets/app_scaffold.dart';
@@ -11,7 +9,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
@@ -26,7 +23,6 @@ class _AlertScreenState extends State<AlertScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final FocusNode _unitsFieldFocus = FocusNode();
   final TextEditingController _unitController = TextEditingController();
-  
 
   @override
   void initState() {

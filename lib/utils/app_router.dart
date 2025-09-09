@@ -5,6 +5,7 @@ import 'package:az_incident_alert/screens/splash.dart';
 import 'package:az_incident_alert/screens/subscription_screen.dart';
 import 'package:az_incident_alert/screens/tabs.dart';
 import 'package:az_incident_alert/widgets/internet_connectivity_wrapper.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -28,6 +29,9 @@ class AppNavigator {
     initialLocation: AppRoute.subscriptionScreen.path,
     debugLogDiagnostics: true,
     navigatorKey: rootNavigator,
+    observers: [
+      FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+    ],
     routes: [
       GoRoute(
         path: AppRoute.subscriptionScreen.path,

@@ -11,7 +11,6 @@ import 'package:az_incident_alert/widgets/subscription_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -22,7 +21,7 @@ class SubscriptionScreen extends StatefulWidget {
 
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   late final List<Plan> plans;
-    InAppPurchaseHelper _inAppPurchaseHelper = InAppPurchaseHelper();
+  InAppPurchaseHelper _inAppPurchaseHelper = InAppPurchaseHelper();
 
   String buttonText = 'Start 3 day free trial';
   bool trialEnded = false;
@@ -30,13 +29,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     plans = _getStaticPlans();
     _checkInAppPurchaseAvailability();
     // checkTrialStatus(); // Uncomment if you want to use it
   }
-   bool _isLoading = true;
-    void _checkInAppPurchaseAvailability() async {
+
+  bool _isLoading = true;
+  void _checkInAppPurchaseAvailability() async {
     bool isAvailable = await _inAppPurchaseHelper.checkAvailability();
 
     if (isAvailable) {
