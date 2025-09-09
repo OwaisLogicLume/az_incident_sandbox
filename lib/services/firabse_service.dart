@@ -82,6 +82,7 @@ class FirebaseService {
 
       final userDocSnapShot = await currentUser?.get();
 
+      log('doc id: ${userDocSnapShot?.id}');
       log('User ID while fetching stations: ${userDocSnapShot?.get(kDeviceIdKey)}');
       log('Saved key from prefs: ${SharedPrefs.instance.deviceId}');
 

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:ui' as ui;
-
 import 'package:az_incident_alert/firebase_options.dart';
 import 'package:az_incident_alert/providers/app_provider.dart';
 import 'package:az_incident_alert/providers/incidents_provider.dart';

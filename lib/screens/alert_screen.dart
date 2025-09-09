@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
@@ -50,47 +51,54 @@ class _AlertScreenState extends State<AlertScreen> {
         appbarBottom: (provider.showUnitsField)
             ? _buildUnitsField(provider)
             : const PreferredSize(preferredSize: Size.zero, child: SizedBox()),
-        body: provider.selectedUnits.isEmpty
+        body: provider.isAlertLoading
             ? Center(
-                child: Text(
-                  'No units added.',
-                  style: textStyle14,
+                child: SpinKitDoubleBounce(
+                  color: context.appColors.primaryColor,
                 ),
               )
-            : ListView.builder(
-                itemCount: provider.selectedUnits.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: index == 0
-                            ? BorderSide(color: context.appColors.primaryColor)
-                            : BorderSide.none,
-                        bottom:
-                            BorderSide(color: context.appColors.primaryColor),
-                      ),
+            : provider.selectedUnits.isEmpty
+                ? Center(
+                    child: Text(
+                      'No units added.',
+                      style: textStyle14,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          provider.selectedUnits.toList()[index],
-                          style: textStyle16Bold,
+                  )
+                : ListView.builder(
+                    itemCount: provider.selectedUnits.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: index == 0
+                                ? BorderSide(
+                                    color: context.appColors.primaryColor)
+                                : BorderSide.none,
+                            bottom: BorderSide(
+                                color: context.appColors.primaryColor),
+                          ),
                         ),
-                        IconButton(
-                          onPressed: () {
-                            provider.removeSelectedUnit(
-                                provider.selectedUnits.toList()[index]);
-                          },
-                          icon: const Icon(Icons.remove),
-                        )
-                      ],
-                    ),
-                  );
-                },
-              ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              provider.selectedUnits.toList()[index],
+                              style: textStyle16Bold,
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                provider.removeSelectedUnit(
+                                    provider.selectedUnits.toList()[index]);
+                              },
+                              icon: const Icon(Icons.remove),
+                            )
+                          ],
+                        ),
+                      );
+                    },
+                  ),
       );
     });
   }

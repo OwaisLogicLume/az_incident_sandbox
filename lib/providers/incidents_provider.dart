@@ -18,9 +18,7 @@ enum MapThemeType { light, dark, satellite }
 class IncidentsProvider extends ChangeNotifier {
   final BaseIncidentService services;
 
-  IncidentsProvider(this.services) {
-    
-  }
+  IncidentsProvider(this.services) {}
 
   /// Values ///
   bool _isLoading = true;
@@ -101,11 +99,13 @@ class IncidentsProvider extends ChangeNotifier {
   }
 
   Future<void> getAllStations() async {
+    setAleartLoading(true);
     List<String> stations = await FirebaseService.instance.getUsersStations();
     log("$stations", name: "Before sort");
     stations.sort(Utils().stationSortCallback);
     log("$stations", name: "After sort");
     _selectedUnits = stations;
+    setAleartLoading(false);
     notifyListeners();
   }
 
@@ -179,8 +179,6 @@ class IncidentsProvider extends ChangeNotifier {
     // notifyListeners();
   }
 
-
-
   /// Fetch incidents from API and cache in Firebase
   Future<void> _fetchAndCacheIncidents() async {
     try {
@@ -192,7 +190,8 @@ class IncidentsProvider extends ChangeNotifier {
       }
 
       // Step 2: Parse incidents
-      final incidents = await Future.wait((response['features'] as List).asMap().entries.map((entry) async {
+      final incidents = await Future.wait(
+          (response['features'] as List).asMap().entries.map((entry) async {
         final index = entry.key;
         final e = entry.value;
         try {
@@ -236,7 +235,8 @@ class IncidentsProvider extends ChangeNotifier {
   /// Refresh incidents from Firebase cache
   Future<void> _refreshFromFirebase() async {
     try {
-      final firebaseIncidents = await FirebaseService.instance.getIncidentsFromFirebase();
+      final firebaseIncidents =
+          await FirebaseService.instance.getIncidentsFromFirebase();
       _incidents = firebaseIncidents;
       filterIncidents();
       notifyListeners();
@@ -247,7 +247,6 @@ class IncidentsProvider extends ChangeNotifier {
     }
   }
 
-
   /// API functions ///
   Future<void> getIncidents({
     dynamic data,
@@ -255,10 +254,10 @@ class IncidentsProvider extends ChangeNotifier {
     Function(String)? onError,
   }) async {
     try {
-
       // Check if recent API call exists and use cache if recent
       if (_lastApiCall != null &&
-          DateTime.now().difference(_lastApiCall!).inSeconds < _pollingIntervalSeconds) {
+          DateTime.now().difference(_lastApiCall!).inSeconds <
+              _pollingIntervalSeconds) {
         log('Using cached data, last API call: ${_lastApiCall?.toIso8601String()}');
         await _refreshFromFirebase();
 
@@ -272,7 +271,6 @@ class IncidentsProvider extends ChangeNotifier {
     } on DioException catch (e) {
       debugPrint('DioException in getIncidents: ${e.message}');
       onError?.call(e.message ?? 'Network error');
-
     } catch (e, s) {
       debugPrint('Error in getIncidents: $e');
       debugPrint('Stack trace: $s');

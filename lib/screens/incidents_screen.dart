@@ -27,6 +27,7 @@ class _IncidencesScreenState extends State<IncidencesScreen> {
     super.initState();
     // logEvent();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<IncidentsProvider>().getAllStations();
       context.read<IncidentsProvider>().getIncidents(
             onSuccess: () => log('Initial incidents fetched successfully'),
             onError: (error) => log('Error fetching initial incidents: $error'),
