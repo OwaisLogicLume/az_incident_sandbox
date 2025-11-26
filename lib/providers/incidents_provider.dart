@@ -280,6 +280,56 @@ class IncidentsProvider extends ChangeNotifier {
     }
   }
 
+  /// Get all unique units from current active incidents
+  Set<String> getAllAvailableUnits() {
+    final Set<String> allUnits = {};
+    for (var incident in _incidents) {
+      allUnits.addAll(incident.unitAlphanumerics);
+    }
+    return allUnits;
+  }
+
+  /// Get units categorized by type
+  Map<String, List<String>> getCategorizedUnits() {
+    final allUnits = getAllAvailableUnits();
+    final Map<String, List<String>> categorized = {
+      'Engines (E)': [],
+      'Ambulances (AM)': [],
+      'Ladders (L)': [],
+      'Battalion Chiefs (BC)': [],
+      'Squads (SQ)': [],
+      'Rescues (R)': [],
+      'Hazmat (HM)': [],
+      'Other': [],
+    };
+
+    for (var unit in allUnits) {
+      if (unit.startsWith('E') && RegExp(r'^E\d+$').hasMatch(unit)) {
+        categorized['Engines (E)']!.add(unit);
+      } else if (unit.startsWith('AM')) {
+        categorized['Ambulances (AM)']!.add(unit);
+      } else if (unit.startsWith('L')) {
+        categorized['Ladders (L)']!.add(unit);
+      } else if (unit.startsWith('BC')) {
+        categorized['Battalion Chiefs (BC)']!.add(unit);
+      } else if (unit.startsWith('SQ')) {
+        categorized['Squads (SQ)']!.add(unit);
+      } else if (unit.startsWith('R') && RegExp(r'^R\d+$').hasMatch(unit)) {
+        categorized['Rescues (R)']!.add(unit);
+      } else if (unit.startsWith('HM')) {
+        categorized['Hazmat (HM)']!.add(unit);
+      } else {
+        categorized['Other']!.add(unit);
+      }
+    }
+
+    // Remove empty categories and sort units within each category
+    categorized.removeWhere((key, value) => value.isEmpty);
+    categorized.forEach((key, value) => value.sort());
+
+    return categorized;
+  }
+
   @override
   void dispose() {
     super.dispose();
