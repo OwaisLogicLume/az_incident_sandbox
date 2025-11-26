@@ -93,6 +93,25 @@ class IncidentsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Get auto-detected map type based on current time
+  /// Returns Day mode between 6 AM - 6 PM, Night mode between 6 PM - 6 AM
+  String getAutoMapType() {
+    final hour = DateTime.now().hour;
+    if (hour >= 6 && hour < 18) {
+      return KDayMapType; // 6 AM to 6 PM
+    } else {
+      return KNightMapType; // 6 PM to 6 AM
+    }
+  }
+
+  /// Initialize map type based on current time
+  /// Called when provider is initialized or app launches
+  void initializeMapType() {
+    _mapType = getAutoMapType();
+    _lastDayNightMapType = _mapType;
+    notifyListeners();
+  }
+
   void setMapTheme(MapThemeType type) {
     _mapThemeType = type;
     notifyListeners();
