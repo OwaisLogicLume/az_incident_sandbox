@@ -16,6 +16,14 @@ class AlertScreen extends StatefulWidget {
 }
 
 class _AlertScreenState extends State<AlertScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load stations from Firebase when screen is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<IncidentsProvider>().getAllStations();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +54,12 @@ class _AlertScreenState extends State<AlertScreen> {
                 : ListView.builder(
                     itemCount: provider.selectedUnits.length,
                     itemBuilder: (context, index) {
+                      final unit = provider.selectedUnits.toList()[index];
+                      final isWildcard = provider.isWildcard(unit);
+                      final displayName = isWildcard
+                          ? provider.getWildcardDisplayName(unit)
+                          : unit;
+
                       return Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 8),
@@ -58,18 +72,45 @@ class _AlertScreenState extends State<AlertScreen> {
                             bottom: BorderSide(
                                 color: context.appColors.primaryColor),
                           ),
+                          color: isWildcard
+                              ? context.appColors.primaryColor.withOpacity(0.05)
+                              : null,
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              provider.selectedUnits.toList()[index],
-                              style: textStyle16Bold,
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  if (isWildcard)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: Icon(
+                                        Icons.star,
+                                        color: context.appColors.primaryColor,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  Expanded(
+                                    child: Text(
+                                      displayName,
+                                      style: textStyle16Bold.copyWith(
+                                        color: isWildcard
+                                            ? context.appColors.primaryColor
+                                            : null,
+                                        fontWeight: isWildcard
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                             IconButton(
                               onPressed: () {
-                                provider.removeSelectedUnit(
-                                    provider.selectedUnits.toList()[index]);
+                                _confirmRemoveUnit(context, provider, unit,
+                                    isWildcard, displayName);
                               },
                               icon: const Icon(Icons.remove),
                             )
@@ -80,6 +121,47 @@ class _AlertScreenState extends State<AlertScreen> {
                   ),
       );
     });
+  }
+
+  void _confirmRemoveUnit(
+    BuildContext context,
+    IncidentsProvider provider,
+    String unit,
+    bool isWildcard,
+    String displayName,
+  ) {
+    final message = isWildcard
+        ? 'Stop following $displayName?\n\nYou will no longer receive alerts for any units matching this pattern.'
+        : 'Remove $unit from your alerts?';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Removal'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              provider.removeSelectedUnit(unit);
+              Navigator.pop(context);
+              Fluttertoast.showToast(
+                msg: isWildcard
+                    ? 'Stopped following $displayName'
+                    : 'Removed $unit',
+              );
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showUnitSelectionBottomSheet(
@@ -93,11 +175,20 @@ class _AlertScreenState extends State<AlertScreen> {
       builder: (context) => UnitSelectionBottomSheet(
         currentlySelectedUnits: provider.selectedUnits.toSet(),
         onUnitsSelected: (selectedUnits) {
-          // Add new units to existing selection
+          // CRITICAL FIX: Bottom sheet selection is the source of truth
+          // 1. Remove units that were deselected (in provider but not in selectedUnits)
+          final unitsToRemove = provider.selectedUnits
+              .where((unit) => !selectedUnits.contains(unit))
+              .toList();
+          for (var unit in unitsToRemove) {
+            provider.removeSelectedUnit(unit);
+          }
+
+          // 2. Add new units (in selectedUnits but not in provider)
           for (var unit in selectedUnits) {
             if (!provider.selectedUnits.contains(unit)) {
               provider.addSelectedUnit(unit, () {
-                // Already exists callback
+                // Already exists callback (shouldn't happen with new logic)
                 Fluttertoast.showToast(
                   msg: 'The unit $unit is already saved for alerts.',
                 );

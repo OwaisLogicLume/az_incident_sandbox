@@ -1,7 +1,9 @@
 import 'package:az_incident_alert/providers/incidents_provider.dart';
+import 'package:az_incident_alert/utils/app_colors.dart';
 import 'package:az_incident_alert/utils/extensions/context_ext.dart';
 import 'package:az_incident_alert/utils/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 class UnitSelectionBottomSheet extends StatefulWidget {
@@ -21,75 +23,124 @@ class UnitSelectionBottomSheet extends StatefulWidget {
 
 class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
   final TextEditingController _searchController = TextEditingController();
-  Map<String, List<String>> _categorizedUnits = {};
-  Map<String, List<String>> _filteredUnits = {};
   Set<String> _tempSelectedUnits = {};
-  Map<String, bool> _expandedCategories = {};
 
   @override
   void initState() {
     super.initState();
     _tempSelectedUnits = Set.from(widget.currentlySelectedUnits);
-    _loadUnits();
-    _searchController.addListener(_filterUnits);
+    _searchController.addListener(() => setState(() {})); // Rebuild on text change
   }
 
-  void _loadUnits() {
-    final provider = context.read<IncidentsProvider>();
-    _categorizedUnits = provider.getCategorizedUnits();
-    _filteredUnits = Map.from(_categorizedUnits);
-
-    // Initialize all categories as expanded
-    _expandedCategories = {
-      for (var category in _categorizedUnits.keys) category: true
-    };
+  void _clearAll() {
+    _tempSelectedUnits.clear();
     setState(() {});
+    Fluttertoast.showToast(msg: 'All selections cleared');
   }
 
-  void _filterUnits() {
-    final query = _searchController.text.toLowerCase();
-    if (query.isEmpty) {
-      _filteredUnits = Map.from(_categorizedUnits);
-    } else {
-      _filteredUnits = {};
-      _categorizedUnits.forEach((category, units) {
-        final filtered = units
-            .where((unit) => unit.toLowerCase().contains(query))
-            .toList();
-        if (filtered.isNotEmpty) {
-          _filteredUnits[category] = filtered;
-        }
-      });
-    }
-    setState(() {});
-  }
+  void _addManualUnit() {
+    final unit = _searchController.text.trim().toUpperCase();
+    if (unit.isEmpty) return;
 
-  void _selectAll() {
-    _filteredUnits.forEach((category, units) {
-      _tempSelectedUnits.addAll(units);
-    });
-    setState(() {});
-  }
-
-  void _deselectAll() {
-    _filteredUnits.forEach((category, units) {
-      _tempSelectedUnits.removeAll(units);
-    });
-    setState(() {});
-  }
-
-  void _toggleUnit(String unit) {
     if (_tempSelectedUnits.contains(unit)) {
-      _tempSelectedUnits.remove(unit);
-    } else {
-      _tempSelectedUnits.add(unit);
+      Fluttertoast.showToast(msg: '$unit is already selected');
+      return;
     }
+
+    _tempSelectedUnits.add(unit);
+    _searchController.clear();
     setState(() {});
+    Fluttertoast.showToast(
+      msg: 'Added $unit',
+      backgroundColor: context.appColors.primaryColor,
+    );
   }
 
-  void _toggleCategory(String category) {
-    _expandedCategories[category] = !(_expandedCategories[category] ?? true);
-    setState(() {});
+  Widget _buildSelectedUnitsList() {
+    if (_tempSelectedUnits.isEmpty) {
+      return Expanded(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.info_outline, size: 64, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                'No units selected',
+                style: textStyle16Bold.copyWith(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Use Quick Follow, wildcards, or type to add units',
+                style: textStyle14.copyWith(color: Colors.grey[500]),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Selected Units (${_tempSelectedUnits.length})',
+              style: textStyle16Bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _tempSelectedUnits.length,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemBuilder: (context, index) {
+                final unit = _tempSelectedUnits.toList()[index];
+                final provider = context.read<IncidentsProvider>();
+                final isWildcard = provider.isWildcard(unit);
+                final displayName = isWildcard
+                    ? provider.getWildcardDisplayName(unit)
+                    : unit;
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: Icon(
+                      isWildcard ? Icons.star : Icons.person,
+                      color: isWildcard
+                          ? context.appColors.primaryColor
+                          : Colors.grey[600],
+                    ),
+                    title: Text(
+                      displayName,
+                      style: textStyle16Bold.copyWith(
+                        color: isWildcard
+                            ? context.appColors.primaryColor
+                            : null,
+                      ),
+                    ),
+                    subtitle: isWildcard ? Text('Wildcard: $unit') : null,
+                    trailing: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.red),
+                      onPressed: () {
+                        _tempSelectedUnits.remove(unit);
+                        setState(() {});
+                        Fluttertoast.showToast(
+                          msg: 'Removed ${isWildcard ? displayName : unit}',
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _done() {
@@ -115,9 +166,11 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
           children: [
             _buildHeader(),
             _buildSearchBar(),
+            _buildQuickFollowSection(),
+            _buildDynamicWildcard(),
+            const SizedBox(height: 16),
+            _buildSelectedUnitsList(),
             _buildActionButtons(),
-            Expanded(child: _buildUnitList()),
-            _buildManualEntryButton(),
           ],
         ),
       ),
@@ -134,9 +187,14 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
             'Select Units',
             style: textStyle20Bold,
           ),
-          IconButton(
-            icon: const Icon(Icons.close),
+          TextButton(
             onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: textStyle16Bold.copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
           ),
         ],
       ),
@@ -148,18 +206,29 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextField(
         controller: _searchController,
+        textCapitalization: TextCapitalization.characters,
         decoration: InputDecoration(
-          hintText: 'Search units...',
+          hintText: 'Type unit to add manually (e.g., E191, BC3)...',
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
+          suffixIcon: _searchController.text.trim().isNotEmpty
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add_circle, color: context.appColors.primaryColor),
+                      onPressed: () => _addManualUnit(),
+                      tooltip: 'Add this unit',
+                    ),
+                  ],
                 )
               : null,
         ),
@@ -169,30 +238,31 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
 
   Widget _buildActionButtons() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: _selectAll,
-              child: const Text('Select All'),
+              onPressed: _clearAll,
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              child: const Text('Clear All'),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Expanded(
-            child: OutlinedButton(
-              onPressed: _deselectAll,
-              child: const Text('Clear'),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
+            flex: 2,
             child: ElevatedButton(
               onPressed: _done,
               style: ElevatedButton.styleFrom(
-                backgroundColor: context.appColors.secondaryColor,
+                backgroundColor: context.appColors.primaryColor,
+                minimumSize: const Size(double.infinity, 50),
               ),
-              child: Text('Done (${_tempSelectedUnits.length})'),
+              child: Text(
+                'Done (${_tempSelectedUnits.length} selected)',
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
           ),
         ],
@@ -200,104 +270,138 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
     );
   }
 
-  Widget _buildUnitList() {
-    if (_filteredUnits.isEmpty) {
-      return const Center(
-        child: Text('No units found'),
-      );
-    }
 
-    return ListView(
-      children: [
-        for (var entry in _filteredUnits.entries)
-          _buildCategorySection(entry.key, entry.value),
-      ],
-    );
-  }
 
-  Widget _buildCategorySection(String category, List<String> units) {
-    final isExpanded = _expandedCategories[category] ?? true;
-    final selectedInCategory =
-        units.where((unit) => _tempSelectedUnits.contains(unit)).length;
 
-    return Column(
-      children: [
-        ListTile(
-          leading: Icon(
-            isExpanded
-                ? Icons.keyboard_arrow_down
-                : Icons.keyboard_arrow_right,
-          ),
-          title: Text(
-            '$category - ${units.length} units',
-            style: textStyle16Bold,
-          ),
-          subtitle: selectedInCategory > 0
-              ? Text('$selectedInCategory selected')
-              : null,
-          onTap: () => _toggleCategory(category),
-        ),
-        if (isExpanded) ...units.map((unit) => _buildUnitCheckbox(unit)),
-        const Divider(),
-      ],
-    );
-  }
 
-  Widget _buildUnitCheckbox(String unit) {
-    final isSelected = _tempSelectedUnits.contains(unit);
-    return CheckboxListTile(
-      value: isSelected,
-      title: Text(unit),
-      onChanged: (value) => _toggleUnit(unit),
-      controlAffinity: ListTileControlAffinity.leading,
-    );
-  }
 
-  Widget _buildManualEntryButton() {
+
+  Widget _buildQuickFollowSection() {
+    const commonCategories = ['E', 'BC', 'AM', 'L', 'SQ', 'R', 'HM'];
+    final provider = context.read<IncidentsProvider>();
+
     return Container(
-      padding: const EdgeInsets.all(16),
-      child: OutlinedButton.icon(
-        onPressed: _showManualEntryDialog,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Custom Unit (Manual Entry)'),
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 50),
-        ),
-      ),
-    );
-  }
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text('Quick Follow', style: textStyle16Bold),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: commonCategories.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final prefix = commonCategories[index];
+                final wildcard = '$prefix*';
+                final isSelected = _tempSelectedUnits.contains(wildcard);
 
-  void _showManualEntryDialog() {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Custom Unit'),
-        content: TextField(
-          controller: controller,
-          textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(
-            hintText: 'Enter unit code (e.g., E191)',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                _tempSelectedUnits.add(controller.text.trim().toUpperCase());
-                setState(() {});
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
+                return isSelected
+                    ? ElevatedButton.icon(
+                        icon: const Icon(Icons.star, size: 16),
+                        label: Text(provider.getWildcardDisplayName(wildcard)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.dPrimary,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => _toggleWildcard(wildcard),
+                      )
+                    : OutlinedButton.icon(
+                        icon: const Icon(Icons.star_border, size: 16),
+                        label: Text(provider.getWildcardDisplayName(wildcard)),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: AppColors.dPrimary),
+                          foregroundColor: AppColors.dPrimary,
+                        ),
+                        onPressed: () => _toggleWildcard(wildcard),
+                      );
+              },
+            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildDynamicWildcard() {
+    final searchText = _searchController.text.trim().toUpperCase();
+    if (searchText.isEmpty) return const SizedBox.shrink();
+
+    final provider = context.read<IncidentsProvider>();
+    final wildcard = '$searchText*';
+    final matchCount = provider.getWildcardMatchCount(wildcard);
+    final isSelected = _tempSelectedUnits.contains(wildcard);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? AppColors.dPrimary.withOpacity(0.2)
+            : AppColors.dPrimary.withOpacity(0.1),
+        border: Border.all(
+          color: AppColors.dPrimary,
+          width: isSelected ? 3 : 2,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(
+          isSelected ? Icons.star : Icons.star_border,
+          color: AppColors.dPrimary,
+          size: 32,
+        ),
+        title: Text(
+          isSelected
+              ? 'Following ALL $searchText units'
+              : 'Follow ALL $searchText units',
+          style: textStyle16Bold.copyWith(
+            color: AppColors.dPrimary,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+          ),
+        ),
+        subtitle: matchCount != null && matchCount > 0
+            ? Text('Currently ~$matchCount active units')
+            : Text('Wildcard: $wildcard'),
+        trailing: Icon(
+          isSelected ? Icons.check_circle : Icons.add_circle,
+          color: AppColors.dPrimary,
+          size: 32,
+        ),
+        onTap: () => _toggleWildcard(wildcard),
+      ),
+    );
+  }
+
+  void _toggleWildcard(String wildcard) {
+    final provider = context.read<IncidentsProvider>();
+    final displayName = provider.getWildcardDisplayName(wildcard);
+
+    if (_tempSelectedUnits.contains(wildcard)) {
+      // Remove wildcard
+      _tempSelectedUnits.remove(wildcard);
+      setState(() {});
+      Fluttertoast.showToast(
+        msg: 'Stopped following $displayName',
+        backgroundColor: Colors.grey[700],
+      );
+    } else {
+      // Add wildcard
+      _tempSelectedUnits.add(wildcard);
+      setState(() {});
+      Fluttertoast.showToast(
+        msg: 'Now following $displayName',
+        backgroundColor: AppColors.dPrimary,
+      );
+    }
+  }
+
+
+
+
 }

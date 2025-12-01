@@ -53,9 +53,19 @@ Future<void> setup() async {
 Future<void> _initializeCoreApp() async {
   await BaseRepository.instance.initialize();
   await SharedPrefs.instance.init();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+
+  // Initialize Firebase (handle case where it's already initialized by iOS/Android)
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    if (e.toString().contains('duplicate-app')) {
+      log('Firebase already initialized, using existing instance');
+    } else {
+      rethrow;
+    }
+  }
 
   //initialize Firebase Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
