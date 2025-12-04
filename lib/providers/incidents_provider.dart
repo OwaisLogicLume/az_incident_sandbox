@@ -208,6 +208,8 @@ class IncidentsProvider extends ChangeNotifier {
         throw Exception('API response is null');
       }
 
+      log('[DEBUG] API returned ${(response['features'] as List).length} incidents');
+
       // Step 2: Parse incidents
       final incidents = await Future.wait(
           (response['features'] as List).asMap().entries.map((entry) async {
@@ -225,6 +227,8 @@ class IncidentsProvider extends ChangeNotifier {
           rethrow;
         }
       }));
+
+      log('[DEBUG] Successfully parsed ${incidents.length} incidents');
 
       // Step 3: Save to Firebase for caching
       try {
@@ -266,6 +270,29 @@ class IncidentsProvider extends ChangeNotifier {
     }
   }
 
+  /// Force refresh incidents from API, bypassing cache
+  Future<void> forceRefreshIncidents({
+    VoidCallback? onSuccess,
+    Function(String)? onError,
+  }) async {
+    try {
+      log('[DEBUG] Force refresh requested - bypassing cache');
+      // Reset last API call to force fresh data
+      _lastApiCall = null;
+      await _fetchAndCacheIncidents();
+      onSuccess?.call();
+    } on DioException catch (e) {
+      debugPrint('DioException in forceRefreshIncidents: ${e.message}');
+      onError?.call(e.message ?? 'Network error');
+    } catch (e, s) {
+      debugPrint('Error in forceRefreshIncidents: $e');
+      debugPrint('Stack trace: $s');
+      onError?.call('$e');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   /// API functions ///
   Future<void> getIncidents({
     dynamic data,
@@ -301,10 +328,12 @@ class IncidentsProvider extends ChangeNotifier {
 
   /// Get all unique units from current active incidents
   Set<String> getAllAvailableUnits() {
+    log('[DEBUG] Extracting units from ${_incidents.length} incidents');
     final Set<String> allUnits = {};
     for (var incident in _incidents) {
       allUnits.addAll(incident.unitAlphanumerics);
     }
+    log('[DEBUG] Found ${allUnits.length} unique units total');
     return allUnits;
   }
 
@@ -346,7 +375,51 @@ class IncidentsProvider extends ChangeNotifier {
     categorized.removeWhere((key, value) => value.isEmpty);
     categorized.forEach((key, value) => value.sort());
 
+    log('[DEBUG] Unit breakdown by category:');
+    categorized.forEach((key, value) {
+      log('[DEBUG]   $key: ${value.length} units');
+    });
+
     return categorized;
+  }
+
+  /// Wildcard Helper Methods ///
+
+  /// Check if a unit string is a wildcard pattern
+  bool isWildcard(String unit) {
+    return unit.endsWith('*');
+  }
+
+  /// Get friendly display name for wildcard
+  /// BC* → "All Battalion Chiefs"
+  /// E1* → "All E1 Units"
+  String getWildcardDisplayName(String wildcard) {
+    if (!isWildcard(wildcard)) return wildcard;
+
+    final prefix = wildcard.substring(0, wildcard.length - 1);
+
+    // Map known prefixes to friendly names
+    const categoryNames = {
+      'E': 'All Engines',
+      'BC': 'All Battalion Chiefs',
+      'AM': 'All Ambulances',
+      'L': 'All Ladders',
+      'SQ': 'All Squads',
+      'R': 'All Rescues',
+      'HM': 'All Hazmat Units',
+    };
+
+    return categoryNames[prefix] ?? 'All $prefix Units';
+  }
+
+  /// Get estimated count of units matching wildcard (for display purposes)
+  int? getWildcardMatchCount(String wildcard) {
+    if (!isWildcard(wildcard)) return null;
+
+    final prefix = wildcard.substring(0, wildcard.length - 1);
+    final allUnits = getAllAvailableUnits();
+
+    return allUnits.where((unit) => unit.startsWith(prefix)).length;
   }
 
   @override

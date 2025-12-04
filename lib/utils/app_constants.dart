@@ -38,7 +38,9 @@ const String kSatelliteMapImage = 'assets/images/satellite.png';
 
 
 
-final Map<String, String> kSymbolCodesImages = {
+// DEPRECATED: Old PNG icon mapping - replaced by getIconForSymbolCode()
+// Kept for reference only - not used in code anymore
+final Map<String, String> kSymbolCodesImagesOld = {
   'sc021-airplane': AppAssets.airplane,
   'sc001-alarm': AppAssets.alarm,
   'sc002-bee': AppAssets.bee,
@@ -74,4 +76,99 @@ final Map<String, String> kSymbolCodesImages = {
   'sc025-waterRescue': AppAssets.waterRescue,
   'sc015-zap': AppAssets.zap,
   'sc036-zap2': AppAssets.zap2,
+};
+
+/// Intelligent icon resolver with pattern matching
+/// Returns appropriate SVG icon path based on symbol code keywords
+/// This replaces the old static PNG icon mapping system
+String getIconForSymbolCode(String symbolCode) {
+  final code = symbolCode.toLowerCase();
+
+  // Fire-related incidents
+  if (code.contains('fire') ||
+      code.contains('burn') ||
+      code.contains('smoke') ||
+      code.contains('flame')) {
+    return 'assets/images/png/Fire.png';
+  }
+
+  // Crash/Accident incidents
+  if (code.contains('crash') ||
+      code.contains('accident') ||
+      code.contains('collision') ||
+      code.contains('vehicle')) {
+    return 'assets/images/png/Car Crash.png';
+  }
+
+  // Hazmat incidents
+  if (code.contains('hazmat') ||
+      code.contains('chemical') ||
+      code.contains('mryuk') ||
+      code.contains('toxic') ||
+      code.contains('spill')) {
+    return 'assets/images/png/Haz Mat.png';
+  }
+
+  // Electrical hazards
+  if (code.contains('zap') ||
+      code.contains('electric') ||
+      code.contains('powerline') ||
+      code.contains('power') ||
+      code.contains('wire')) {
+    return 'assets/images/png/Electric Hazard.png';
+  }
+
+  // Water rescue incidents
+  if (code.contains('water') ||
+      code.contains('boat') ||
+      code.contains('lifebuoy') ||
+      code.contains('drown') ||
+      code.contains('swim') ||
+      code.contains('river') ||
+      code.contains('lake')) {
+    return 'assets/images/png/Lifebuoy.png';
+  }
+
+  // Mountain/cliff rescue
+  if (code.contains('mountain') ||
+      code.contains('cliff') ||
+      code.contains('climb') ||
+      code.contains('hike') ||
+      code.contains('trail')) {
+    return 'assets/images/png/Mountain Rescue.png';
+  }
+
+  // Snake incidents
+  if (code.contains('snake') ||
+      code.contains('reptile') ||
+      code.contains('serpent') ||
+      code.contains('bite')) {
+    return 'assets/images/png/Snake.png';
+  }
+
+  // Bee/insect incidents
+  if (code.contains('bee') ||
+      code.contains('wasp') ||
+      code.contains('hornet') ||
+      code.contains('sting') ||
+      code.contains('swarm')) {
+    return 'assets/images/png/Bee.png';
+  }
+
+  // Lockout incidents
+  if (code.contains('lock') ||
+      code.contains('trapped') ||
+      code.contains('stuck') ||
+      code.contains('key')) {
+    return 'assets/images/png/Lock Out.png';
+  }
+
+  // Default fallback for everything else
+  return 'assets/images/png/Other Hazard.png';
+}
+
+/// Keep old kSymbolCodesImages name for backward compatibility
+/// but point to new function logic
+final Map<String, String> kSymbolCodesImages = {
+  // This map is deprecated - use getIconForSymbolCode() instead
 };
