@@ -52,69 +52,39 @@ class _AlertScreenState extends State<AlertScreen> {
                     ),
                   )
                 : ListView.builder(
+                    padding: const EdgeInsets.all(16),
                     itemCount: provider.selectedUnits.length,
                     itemBuilder: (context, index) {
-                      final unit = provider.selectedUnits.toList()[index];
+                      final unit = provider.selectedUnits[index];
                       final isWildcard = provider.isWildcard(unit);
                       final displayName = isWildcard
                           ? provider.getWildcardDisplayName(unit)
                           : unit;
 
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 8),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: index == 0
-                                ? BorderSide(
-                                    color: context.appColors.primaryColor)
-                                : BorderSide.none,
-                            bottom: BorderSide(
-                                color: context.appColors.primaryColor),
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        elevation: 1,
+                        child: ListTile(
+                          leading: Icon(
+                            isWildcard ? Icons.star : Icons.circle,
+                            color: context.appColors.primaryColor,
                           ),
-                          color: isWildcard
-                              ? context.appColors.primaryColor.withOpacity(0.05)
-                              : null,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  if (isWildcard)
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: Icon(
-                                        Icons.star,
-                                        color: context.appColors.primaryColor,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  Expanded(
-                                    child: Text(
-                                      displayName,
-                                      style: textStyle16Bold.copyWith(
-                                        color: isWildcard
-                                            ? context.appColors.primaryColor
-                                            : null,
-                                        fontWeight: isWildcard
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          title: Text(
+                            isWildcard ? '$displayName ($unit)' : displayName,
+                            style: textStyle16Bold.copyWith(
+                              color: isWildcard
+                                  ? context.appColors.primaryColor
+                                  : null,
                             ),
-                            IconButton(
-                              onPressed: () {
-                                _confirmRemoveUnit(context, provider, unit,
-                                    isWildcard, displayName);
-                              },
-                              icon: const Icon(Icons.remove),
-                            )
-                          ],
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.close, color: Colors.red),
+                            onPressed: () {
+                              _confirmRemoveUnit(
+                                  context, provider, unit, isWildcard, displayName);
+                            },
+                          ),
                         ),
                       );
                     },
