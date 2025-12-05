@@ -1,6 +1,8 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:az_incident_alert/utils/app_constants.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPrefs {
@@ -16,6 +18,7 @@ class SharedPrefs {
   final String _trialStartDateKey = 'trialStartDate';
   final String _isTrialActiveKey = 'isTrialActive';
   final String _isSubscribedKey = 'isSubscribed';
+  final String _isAdminModeKey = 'isAdminMode';
 
   init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -83,7 +86,8 @@ class SharedPrefs {
     if (!isActive || startDateStr == null) return false;
 
     final startDate = DateTime.parse(startDateStr);
-    return DateTime.now().isBefore(startDate.add(const Duration(minutes: 1)));
+    // FIXED: Changed from 1 minute to 3 days as per requirements
+    return DateTime.now().isBefore(startDate.add(const Duration(days: 3)));
   }
 
   /// Subscription Status
@@ -93,5 +97,61 @@ class SharedPrefs {
 
   Future<bool> get isSubscribed async {
     return _prefs.getBool(_isSubscribedKey) ?? false;
+  }
+
+  Future<void> setTrialActive(bool value) async {
+    await _prefs.setBool(_isTrialActiveKey, value);
+  }
+
+  Future<void> setTrialStartDate(DateTime date) async {
+    await _prefs.setString(_trialStartDateKey, date.toIso8601String());
+  }
+
+  /// Get or generate consistent user ID for RevenueCat
+  Future<String> getOrGenerateUserId() async {
+    // First check if we already have a stored device ID
+    String? storedDeviceId = deviceId;
+
+    if (storedDeviceId != null && storedDeviceId.isNotEmpty) {
+      log('[SharedPrefs] Using stored device ID: $storedDeviceId');
+      return storedDeviceId;
+    }
+
+    // Generate new device ID
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      String uniqueId;
+
+      if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        uniqueId = iosInfo.identifierForVendor ?? 'ios_${DateTime.now().millisecondsSinceEpoch}';
+        log('[SharedPrefs] Generated iOS device ID: $uniqueId');
+      } else if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        uniqueId = androidInfo.id;
+        log('[SharedPrefs] Generated Android device ID: $uniqueId');
+      } else {
+        uniqueId = 'device_${DateTime.now().millisecondsSinceEpoch}';
+        log('[SharedPrefs] Generated fallback device ID: $uniqueId');
+      }
+
+      // Store the device ID for future use
+      await setDeviceId(uniqueId);
+      return uniqueId;
+    } catch (e) {
+      log('[SharedPrefs] Error generating device ID: $e');
+      // Fallback to timestamp-based ID
+      final fallbackId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+      await setDeviceId(fallbackId);
+      return fallbackId;
+    }
+  }
+
+  /// Admin Mode
+  bool get isAdminMode => _prefs.getBool(_isAdminModeKey) ?? false;
+
+  Future<void> setAdminMode(bool value) async {
+    await _prefs.setBool(_isAdminModeKey, value);
+    log('Admin mode ${value ? 'enabled' : 'disabled'}');
   }
 }

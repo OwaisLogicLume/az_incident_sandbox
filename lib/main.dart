@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:az_incident_alert/firebase_options.dart';
 import 'package:az_incident_alert/providers/app_provider.dart';
 import 'package:az_incident_alert/providers/incidents_provider.dart';
+import 'package:az_incident_alert/providers/subscription_provider.dart';
 import 'package:az_incident_alert/services/base_api_service.dart';
 import 'package:az_incident_alert/services/firabse_service.dart';
 import 'package:az_incident_alert/services/incident_service.dart';
@@ -79,6 +80,18 @@ Future<void> _initializeCoreApp() async {
   await _getDeviceId();
   await FirebaseService.instance.init();
 
+  // Initialize SubscriptionProvider with consistent user ID
+  try {
+    final userId = await SharedPrefs.instance.getOrGenerateUserId();
+    log('[Main] Initializing SubscriptionProvider with user ID: $userId');
+    await SubscriptionProvider().initialize(userId);
+    log('[Main] ✅ SubscriptionProvider initialized successfully');
+  } catch (e, stackTrace) {
+    log('[Main] ⚠️ Failed to initialize SubscriptionProvider: $e');
+    log('[Main] Stack trace: $stackTrace');
+    // Continue app startup even if subscription initialization fails
+  }
+
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   // Example: log startup event
   Future<void> logEvent() async {
@@ -129,6 +142,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<AppProvider>(
           create: (_) => AppProvider(),
+        ),
+        ChangeNotifierProvider<SubscriptionProvider>(
+          create: (_) => SubscriptionProvider(),
         ),
       ],
       child: buildMyapp(analytics),
