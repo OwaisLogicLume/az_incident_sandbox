@@ -28,11 +28,7 @@ class NewIncidentTile extends StatelessWidget {
         padding: EdgeInsets.all(20.r),
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          color: incident.unitAlphanumerics
-                  .intersection(
-                    context.read<IncidentsProvider>().selectedUnits.toSet(),
-                  )
-                  .isNotEmpty
+          color: context.read<IncidentsProvider>().incidentMatchesSelectedUnits(incident)
               ? context.appColors.ternaryColor
               : context.isDark
                   ? Colors.black38

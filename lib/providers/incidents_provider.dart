@@ -38,6 +38,7 @@ class IncidentsProvider extends ChangeNotifier {
   Timer? _pollingTimer; // Timer for periodic API calls
   DateTime? _lastApiCall; // Track last API call time
   static const int _pollingIntervalSeconds = 30; // 30-second polling interval
+  bool _isAdminMode = false; // Admin mode for full wildcard access
 
   MapThemeType get mapThemeType => _mapThemeType;
 
@@ -61,6 +62,7 @@ class IncidentsProvider extends ChangeNotifier {
   List<String> get selectedSymbolCodes => _selectedSymbolCodes;
   List<Marker> get markers => _markers;
   Map<String, String> get symbolCodes => _symbolCodes;
+  bool get isAdminMode => _isAdminMode;
 
   /// Methods ///
 
@@ -114,6 +116,20 @@ class IncidentsProvider extends ChangeNotifier {
 
   void setMapTheme(MapThemeType type) {
     _mapThemeType = type;
+    notifyListeners();
+  }
+
+  /// Load admin mode state from SharedPrefs
+  void loadAdminMode() {
+    _isAdminMode = SharedPrefs.instance.isAdminMode;
+    log('Admin mode loaded: $_isAdminMode');
+    notifyListeners();
+  }
+
+  /// Toggle admin mode and persist to SharedPrefs
+  Future<void> toggleAdminMode() async {
+    _isAdminMode = !_isAdminMode;
+    await SharedPrefs.instance.setAdminMode(_isAdminMode);
     notifyListeners();
   }
 
@@ -420,6 +436,36 @@ class IncidentsProvider extends ChangeNotifier {
     final allUnits = getAllAvailableUnits();
 
     return allUnits.where((unit) => unit.startsWith(prefix)).length;
+  }
+
+  /// Check if an incident matches any of the user's selected units (with wildcard support)
+  /// This mirrors the backend's matchesUserStation() logic for notification filtering
+  bool incidentMatchesSelectedUnits(Incident incident) {
+    if (_selectedUnits.isEmpty) return false;
+
+    // Get all units from the incident
+    final incidentUnits = incident.unitAlphanumerics;
+    if (incidentUnits.isEmpty) return false;
+
+    // Check if any incident unit matches any selected unit/wildcard
+    for (final selectedUnit in _selectedUnits) {
+      if (isWildcard(selectedUnit)) {
+        // Wildcard matching: check if any incident unit starts with the wildcard prefix
+        final prefix = selectedUnit.substring(0, selectedUnit.length - 1);
+        for (final incidentUnit in incidentUnits) {
+          if (incidentUnit.startsWith(prefix)) {
+            return true;
+          }
+        }
+      } else {
+        // Exact match: check if selected unit is in incident units
+        if (incidentUnits.contains(selectedUnit)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   @override
