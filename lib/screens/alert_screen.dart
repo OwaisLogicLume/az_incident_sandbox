@@ -63,15 +63,22 @@ class _AlertScreenState extends State<AlertScreen> {
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        elevation: 1,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
+                            color: Theme.of(context).dividerColor.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
                         child: ListTile(
                           leading: Icon(
                             isWildcard ? Icons.star : Icons.circle,
                             color: context.appColors.primaryColor,
                           ),
                           title: Text(
-                            isWildcard ? '$displayName ($unit)' : displayName,
+                            displayName,
                             style: textStyle16Bold.copyWith(
                               color: isWildcard
                                   ? context.appColors.primaryColor
@@ -79,7 +86,7 @@ class _AlertScreenState extends State<AlertScreen> {
                             ),
                           ),
                           trailing: IconButton(
-                            icon: const Icon(Icons.close, color: Colors.red),
+                            icon: Icon(Icons.close, color: Theme.of(context).colorScheme.error),
                             onPressed: () {
                               _confirmRemoveUnit(
                                   context, provider, unit, isWildcard, displayName);

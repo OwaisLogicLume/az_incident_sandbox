@@ -131,11 +131,13 @@ class Incident {
 class Plan {
   final String title;
   final String price;
+  final String? subtitle;
   bool isSelected;
 
   Plan({
     required this.title,
     required this.price,
+    this.subtitle,
     required this.isSelected,
   });
 } 

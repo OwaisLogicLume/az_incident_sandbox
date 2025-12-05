@@ -35,7 +35,6 @@ class AppScaffold extends StatelessWidget {
     return Scaffold(
       appBar: appbarTitle != null
           ? AppBar(
-              leadingWidth: 20,
               title: Text(
                 appbarTitle ?? 'Title',
                 style: (titleStyle ?? textStyle22Bold).copyWith(

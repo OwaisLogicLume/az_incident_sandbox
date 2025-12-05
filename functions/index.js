@@ -7,7 +7,7 @@
    * See a full list of supported triggers at https://firebase.google.com/docs/functions
    */
 
-  const { onRequest } = require("firebase-functions/v2`/https");
+  const { onRequest } = require("firebase-functions/v2/https");
   const logger = require("firebase-functions/logger");
 
   const functions = require("firebase-functions");
@@ -35,6 +35,31 @@
     logger.log("available stations => ", unitsAlphanumeric);
 
     return new Set(unitsAlphanumeric);
+  }
+
+  /**
+   * Check if an incident unit matches any of the user's subscribed stations
+   * Supports both exact matching (E191) and wildcard matching (BC*, E1*)
+   * @param {string} incidentUnit - The unit from the incident (e.g., "BC5")
+   * @param {Array<string>} userStations - User's subscribed stations (may include wildcards)
+   * @returns {boolean} - True if there's a match
+   */
+  function matchesUserStation(incidentUnit, userStations) {
+    for (const station of userStations) {
+      if (station.endsWith('*')) {
+        // Wildcard matching
+        const prefix = station.slice(0, -1);
+        if (incidentUnit.startsWith(prefix)) {
+          return true;
+        }
+      } else {
+        // Exact matching
+        if (incidentUnit === station) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   // URL : https://maps.phoenix.gov/phxfire/rest/services/Active_Incidents__Public/MapServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=100&where=1%3D1&orderByFields=Incident%20DESC&outFields=*&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryPoint
@@ -69,14 +94,14 @@
             ?.filter(
               (incident) =>
                 !user.alerted_incidents.includes(incident.id) &&
-                Array.from(incident.stations).some((station) =>
-                  user.stations.includes(station)
+                Array.from(incident.stations).some((incidentUnit) =>
+                  matchesUserStation(incidentUnit, user.stations)
                 )
             )
             .map((incident) => ({
               ...incident,
-              alertStations: Array.from(incident.stations).filter((station) =>
-                user.stations.includes(station)
+              alertStations: Array.from(incident.stations).filter((incidentUnit) =>
+                matchesUserStation(incidentUnit, user.stations)
               ),
             }));
 

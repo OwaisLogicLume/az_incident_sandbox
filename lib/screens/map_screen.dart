@@ -3,6 +3,7 @@ import 'package:az_incident_alert/utils/app_constants.dart';
 import 'package:az_incident_alert/widgets/app_scaffold.dart';
 import 'package:az_incident_alert/widgets/esri_map.dart';
 import 'package:az_incident_alert/widgets/map_layer_switch.dart';
+import 'package:az_incident_alert/widgets/fire_station_toggle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
@@ -54,6 +55,13 @@ class _MapScreenState extends State<MapScreen> {
               top: 16.h,
               right: 16.w,
               child: const MapLayerSwitch(),
+            ),
+
+            // Fire station toggle below map layer switch
+            Positioned(
+              top: 80.h,
+              right: 16.w,
+              child: const FireStationToggle(),
             ),
           ],
         ),

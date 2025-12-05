@@ -43,7 +43,16 @@ class SubscriptionPlanCard extends StatelessWidget {
                   plan.title,
                   style: textStyle16,
                 ),
-                4.verticalSpace,
+                if (plan.subtitle != null) ...[
+                  4.verticalSpace,
+                  Text(
+                    plan.subtitle!,
+                    style: textStyle12.copyWith(
+                      color: Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ],
             ),
             Column(

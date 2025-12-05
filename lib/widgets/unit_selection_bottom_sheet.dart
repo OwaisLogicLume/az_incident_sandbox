@@ -26,17 +26,57 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
   final TextEditingController _searchController = TextEditingController();
   Set<String> _tempSelectedUnits = {};
 
+  // Admin mode activation state
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
+
   @override
   void initState() {
     super.initState();
     _tempSelectedUnits = Set.from(widget.currentlySelectedUnits);
     _searchController.addListener(() => setState(() {})); // Rebuild on text change
+
+    // Load admin mode from SharedPrefs
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<IncidentsProvider>().loadAdminMode();
+    });
   }
 
   void _clearAll() {
     _tempSelectedUnits.clear();
     setState(() {});
     Fluttertoast.showToast(msg: 'All selections cleared');
+  }
+
+  void _handleTitleTap() {
+    final now = DateTime.now();
+
+    // Reset counter if more than 3 seconds have passed since last tap
+    if (_lastTapTime == null || now.difference(_lastTapTime!) > const Duration(seconds: 3)) {
+      _tapCount = 1;
+    } else {
+      _tapCount++;
+    }
+
+    _lastTapTime = now;
+
+    // Activate admin mode after 7 taps
+    if (_tapCount >= 7) {
+      final provider = context.read<IncidentsProvider>();
+      provider.toggleAdminMode();
+
+      Fluttertoast.showToast(
+        msg: provider.isAdminMode
+            ? 'Admin mode enabled - Full wildcard access granted'
+            : 'Admin mode disabled',
+        backgroundColor: provider.isAdminMode ? Colors.green : Colors.orange,
+        toastLength: Toast.LENGTH_LONG,
+        timeInSecForIosWeb: 4,
+      );
+
+      _tapCount = 0; // Reset counter
+      _lastTapTime = null;
+    }
   }
 
   void _addManualUnit() {
@@ -46,24 +86,35 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
     // Dismiss keyboard
     FocusScope.of(context).unfocus();
 
-    // Block any wildcards - they should use the dynamic wildcard card
+    final provider = context.read<IncidentsProvider>();
+    final isAdmin = provider.isAdminMode;
+
+    // Handle wildcards
     if (unit.contains('*')) {
-      if (unit.startsWith('BC')) {
-        Fluttertoast.showToast(
-          msg: 'Use the wildcard option shown below to add BC wildcards',
-          backgroundColor: Colors.orange,
-          toastLength: Toast.LENGTH_LONG,
-          timeInSecForIosWeb: 4,
-        );
-      } else {
-        Fluttertoast.showToast(
-          msg: 'Wildcards are only available for Battalion Chiefs',
-          backgroundColor: Colors.red,
-          toastLength: Toast.LENGTH_LONG,
-          timeInSecForIosWeb: 4,
-        );
+      // Admin: Allow all wildcards via textfield
+      if (isAdmin) {
+        // Wildcard validation passed, proceed to add
+        // (Will be handled by existing conflict detection logic below)
       }
-      return;
+      // Normal user: Block all wildcards in textfield
+      else {
+        if (unit.startsWith('BC')) {
+          Fluttertoast.showToast(
+            msg: 'Use the "All Battalion Chiefs" button to add BC wildcards',
+            backgroundColor: Colors.orange,
+            toastLength: Toast.LENGTH_LONG,
+            timeInSecForIosWeb: 4,
+          );
+        } else {
+          Fluttertoast.showToast(
+            msg: 'Wildcard access requires admin mode',
+            backgroundColor: Colors.red,
+            toastLength: Toast.LENGTH_LONG,
+            timeInSecForIosWeb: 4,
+          );
+        }
+        return;
+      }
     }
 
     if (_tempSelectedUnits.contains(unit)) {
@@ -102,22 +153,30 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
 
   Widget _buildSelectedUnitsList() {
     if (_tempSelectedUnits.isEmpty) {
+      final provider = context.read<IncidentsProvider>();
+      final isAdmin = provider.isAdminMode;
+
       return Expanded(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.info_outline, size: 64, color: Colors.grey[400]),
+              Icon(Icons.info_outline, size: 64, color: Theme.of(context).disabledColor),
               const SizedBox(height: 16),
               Text(
                 'No units selected',
-                style: textStyle16Bold.copyWith(color: Colors.grey[600]),
+                style: textStyle16Bold.copyWith(color: Theme.of(context).hintColor),
               ),
               const SizedBox(height: 8),
-              Text(
-                'Use Quick Follow, wildcards, or type to add units',
-                style: textStyle14.copyWith(color: Colors.grey[500]),
-                textAlign: TextAlign.center,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  isAdmin
+                      ? 'Type units in the search field or use wildcards (e.g., E*, BC*, MED*)'
+                      : 'Type individual units in the search field or use the "All Battalion Chiefs" button',
+                  style: textStyle14.copyWith(color: Theme.of(context).hintColor),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ],
           ),
@@ -151,15 +210,22 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  elevation: 1,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(
+                      color: Theme.of(context).dividerColor.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
                   child: ListTile(
                     leading: Icon(
                       isWildcard ? Icons.star : Icons.circle,
                       color: context.appColors.primaryColor,
                     ),
                     title: Text(
-                      isWildcard ? '$displayName ($unit)' : displayName,
+                      displayName,
                       style: textStyle16Bold.copyWith(
                         color: isWildcard
                             ? context.appColors.primaryColor
@@ -167,7 +233,7 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
                       ),
                     ),
                     trailing: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.red),
+                      icon: Icon(Icons.close, color: Theme.of(context).colorScheme.error),
                       onPressed: () {
                         _tempSelectedUnits.remove(unit);
                         setState(() {});
@@ -225,16 +291,19 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Select Units',
-            style: textStyle20Bold,
+          GestureDetector(
+            onTap: _handleTitleTap,
+            child: Text(
+              'Select Units',
+              style: textStyle20Bold,
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
               style: textStyle16Bold.copyWith(
-                color: Colors.grey[600],
+                color: Theme.of(context).hintColor,
               ),
             ),
           ),
@@ -244,20 +313,38 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
   }
 
   Widget _buildSearchBar() {
+    final provider = context.watch<IncidentsProvider>();
+    final isAdmin = provider.isAdminMode;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextField(
         controller: _searchController,
         textCapitalization: TextCapitalization.characters,
         inputFormatters: [
-          // Allow only letters, numbers, and asterisk
-          FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9*]')),
-          // Custom formatter to ensure asterisk rules
+          // Allow both uppercase and lowercase letters, numbers, and asterisk (asterisk only for admin)
+          FilteringTextInputFormatter.allow(
+            isAdmin ? RegExp(r'[A-Za-z0-9*]') : RegExp(r'[A-Za-z0-9]')
+          ),
+          // Convert all input to uppercase
+          TextInputFormatter.withFunction((oldValue, newValue) {
+            return TextEditingValue(
+              text: newValue.text.toUpperCase(),
+              selection: newValue.selection,
+            );
+          }),
+          // Custom formatter to ensure asterisk rules (only applies to admin)
           TextInputFormatter.withFunction((oldValue, newValue) {
             final text = newValue.text;
 
             // If text contains asterisk, validate its position and count
             if (text.contains('*')) {
+              // Non-admin users should never get here due to first formatter,
+              // but double-check for safety
+              if (!isAdmin) {
+                return oldValue;
+              }
+
               // Count asterisks
               final asteriskCount = text.split('*').length - 1;
 
@@ -325,11 +412,11 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
               onPressed: _done,
               style: ElevatedButton.styleFrom(
                 backgroundColor: context.appColors.primaryColor,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 minimumSize: const Size(double.infinity, 50),
               ),
               child: Text(
                 'Done (${_tempSelectedUnits.length} selected)',
-                style: const TextStyle(color: Colors.white),
               ),
             ),
           ),
@@ -346,25 +433,36 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
   Widget _buildDynamicWildcard() {
     final searchText = _searchController.text.trim().toUpperCase();
     final provider = context.read<IncidentsProvider>();
+    final isAdmin = provider.isAdminMode;
 
     // Determine which wildcard to show
     String wildcard;
     String label;
 
-    if (searchText.isEmpty || !searchText.startsWith('BC')) {
-      // Default: Show BC* (All Battalion Chiefs)
+    // Normal users: ONLY show BC* (All Battalion Chiefs), never dynamic wildcards
+    if (!isAdmin) {
+      wildcard = 'BC*';
+      final isSelected = _tempSelectedUnits.contains(wildcard);
+      label = isSelected ? 'Following All Battalion Chiefs' : 'Follow All Battalion Chiefs';
+    }
+    // Admin users: Show dynamic wildcards for any text pattern
+    else if (searchText.isEmpty) {
+      // Default for admin: Show BC* when textfield is empty
       wildcard = 'BC*';
       final isSelected = _tempSelectedUnits.contains(wildcard);
       label = isSelected ? 'Following All Battalion Chiefs' : 'Follow All Battalion Chiefs';
     } else {
-      // Show dynamic wildcard based on BC input
-      // Don't add * if user already typed it
+      // Admin: Show dynamic wildcard based on input
       wildcard = searchText.endsWith('*') ? searchText : '$searchText*';
       final isSelected = _tempSelectedUnits.contains(wildcard);
 
       if (searchText == 'BC' || searchText == 'BC*') {
         label = isSelected ? 'Following All Battalion Chiefs' : 'Follow All Battalion Chiefs';
+      } else if (searchText.startsWith('BC')) {
+        final displayText = searchText.endsWith('*') ? searchText : '$searchText*';
+        label = isSelected ? 'Following $displayText Wildcard' : 'Follow $displayText Wildcard';
       } else {
+        // Admin wildcard for non-BC units (E*, MED*, etc.)
         final displayText = searchText.endsWith('*') ? searchText : '$searchText*';
         label = isSelected ? 'Following $displayText Wildcard' : 'Follow $displayText Wildcard';
       }
@@ -376,6 +474,8 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
     }
 
     final isSelected = _tempSelectedUnits.contains(wildcard);
+
+    final textColor = Theme.of(context).colorScheme.onPrimary;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -400,7 +500,7 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
                 children: [
                   Icon(
                     isSelected ? Icons.star : Icons.star_border,
-                    color: Colors.white,
+                    color: textColor,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -408,7 +508,7 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
                     child: Text(
                       label,
                       style: textStyle16Bold.copyWith(
-                        color: Colors.white,
+                        color: textColor,
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,
@@ -420,7 +520,7 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
             ),
             Icon(
               isSelected ? Icons.check_circle : Icons.add_circle_outline,
-              color: Colors.white,
+              color: textColor,
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 import 'package:provider/provider.dart';
 import 'package:az_incident_alert/models/incident_model.dart';
+import 'package:az_incident_alert/models/fire_station_model.dart';
 import 'package:az_incident_alert/providers/incidents_provider.dart';
 import 'package:az_incident_alert/utils/app_constants.dart';
 import 'package:az_incident_alert/widgets/marker_sheet.dart';
@@ -22,19 +23,31 @@ class MapBoxWidget extends StatefulWidget {
 class _MapBoxWidgetState extends State<MapBoxWidget> {
   MapboxMap? _mapboxMap;
   PointAnnotationManager? _pointAnnotationManager;
+  PointAnnotationManager? _fireStationAnnotationManager;
   final Map<String, Incident> _annotationIncidentMap = {};
+  final Map<String, FireStation> _annotationFireStationMap = {};
 
   @override
   Widget build(BuildContext context) {
     final initialLatLng = widget.initialLatLng ?? kPhoenixLatLng;
-    
-    
+
+
 
     return Consumer<IncidentsProvider>(
       builder: (context, provider, _) {
          final styleUri = _getStyleUri(provider);
+
+         // Update fire station markers when showFireStations changes
+         WidgetsBinding.instance.addPostFrameCallback((_) {
+           if (provider.showFireStations && _fireStationAnnotationManager != null) {
+             _addFireStationMarkers();
+           } else if (!provider.showFireStations && _fireStationAnnotationManager != null) {
+             _removeFireStationMarkers();
+           }
+         });
+
         return MapWidget(
-          
+
           cameraOptions: CameraOptions(
             center: Point(
               coordinates: Position(
@@ -46,7 +59,7 @@ class _MapBoxWidgetState extends State<MapBoxWidget> {
 
           ),
           styleUri: styleUri,
-              
+
           key: ValueKey("mapbox-map-${provider.mapType}"),
 
           mapOptions: MapOptions(
@@ -80,7 +93,14 @@ String _getStyleUri(IncidentsProvider provider) {
   void _onMapCreated(MapboxMap mapboxMap) async {
     _mapboxMap = mapboxMap;
     _pointAnnotationManager = await mapboxMap.annotations.createPointAnnotationManager();
+    _fireStationAnnotationManager = await mapboxMap.annotations.createPointAnnotationManager();
     await _addMarkers();
+
+    // Check if fire stations should be shown on map load
+    final provider = context.read<IncidentsProvider>();
+    if (provider.showFireStations) {
+      await _addFireStationMarkers();
+    }
   }
 
   Future<void> _addMarkers() async {
@@ -229,6 +249,149 @@ final scaleFactor = 30 / mbxImage.width;
     rethrow;
   }
 }
+
+  /// Add fire station markers to the map
+  Future<void> _addFireStationMarkers() async {
+    if (_mapboxMap == null || _fireStationAnnotationManager == null) {
+      return;
+    }
+
+    final provider = context.read<IncidentsProvider>();
+    if (provider.fireStations.isEmpty) {
+      return;
+    }
+
+    _annotationFireStationMap.clear();
+
+    try {
+      // Load fire station icon
+      final mbxImage = await _loadMbxImage('assets/images/png/fire-station.png');
+      const imageId = 'fire_station_icon';
+
+      // Add image to style
+      await _mapboxMap!.style.addStyleImage(
+        imageId,
+        1.0,
+        mbxImage,
+        false,
+        [],
+        [],
+        null,
+      );
+
+      // Create annotations for each fire station
+      for (FireStation station in provider.fireStations) {
+        try {
+          final scaleFactor = 30 / mbxImage.width;
+          final pointAnnotationOptions = PointAnnotationOptions(
+            geometry: Point(
+              coordinates: Position(
+                station.lng,
+                station.lat,
+              ),
+            ),
+            iconImage: imageId,
+            iconSize: scaleFactor,
+          );
+
+          final annotation = await _fireStationAnnotationManager!.create(pointAnnotationOptions);
+          _annotationFireStationMap[annotation.id] = station;
+        } catch (e) {
+          log('Error adding fire station marker for ${station.name}: $e');
+        }
+      }
+    } catch (e, stackTrace) {
+      log('Error adding fire station markers: $e');
+      log('Stack trace: $stackTrace');
+    }
+  }
+
+  /// Remove fire station markers from the map
+  Future<void> _removeFireStationMarkers() async {
+    if (_fireStationAnnotationManager == null) return;
+
+    try {
+      await _fireStationAnnotationManager!.deleteAll();
+      _annotationFireStationMap.clear();
+    } catch (e) {
+      log('Error removing fire station markers: $e');
+    }
+  }
+
+  /// Show fire station information
+  void _showFireStationInfo(FireStation station) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.local_fire_department, color: Colors.red, size: 32),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    station.name,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (station.address != null) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_on, size: 20, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      station.address!,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+            Row(
+              children: [
+                const Icon(Icons.map, size: 20, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  '${station.lat.toStringAsFixed(6)}, ${station.lng.toStringAsFixed(6)}',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text('Close'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class PointAnnotationClickListener implements OnPointAnnotationClickListener {

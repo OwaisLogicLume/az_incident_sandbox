@@ -2,7 +2,9 @@ import 'dart:developer';
 import 'dart:async'; // Added for Timer
 
 import 'package:az_incident_alert/models/incident_model.dart';
+import 'package:az_incident_alert/models/fire_station_model.dart';
 import 'package:az_incident_alert/services/firabse_service.dart';
+import 'package:az_incident_alert/services/fire_station_service.dart';
 import 'package:az_incident_alert/utils/app_constants.dart';
 import 'package:az_incident_alert/utils/shared_prefs.dart';
 import 'package:az_incident_alert/utils/utils.dart';
@@ -40,6 +42,11 @@ class IncidentsProvider extends ChangeNotifier {
   static const int _pollingIntervalSeconds = 30; // 30-second polling interval
   bool _isAdminMode = false; // Admin mode for full wildcard access
 
+  // Fire Station state
+  List<FireStation> _fireStations = [];
+  bool _showFireStations = false;
+  bool _isLoadingFireStations = false;
+
   MapThemeType get mapThemeType => _mapThemeType;
 
   Map<String, dynamic> geometry = {};
@@ -63,6 +70,11 @@ class IncidentsProvider extends ChangeNotifier {
   List<Marker> get markers => _markers;
   Map<String, String> get symbolCodes => _symbolCodes;
   bool get isAdminMode => _isAdminMode;
+
+  // Fire Station getters
+  List<FireStation> get fireStations => _fireStations;
+  bool get showFireStations => _showFireStations;
+  bool get isLoadingFireStations => _isLoadingFireStations;
 
   /// Methods ///
 
@@ -466,6 +478,38 @@ class IncidentsProvider extends ChangeNotifier {
     }
 
     return false;
+  }
+
+  /// Fire Station Methods ///
+
+  /// Toggle fire stations visibility
+  Future<void> toggleFireStations() async {
+    if (!_showFireStations && _fireStations.isEmpty) {
+      await fetchFireStations();
+    }
+    _showFireStations = !_showFireStations;
+    notifyListeners();
+  }
+
+  /// Fetch fire stations from Overpass API
+  Future<void> fetchFireStations() async {
+    if (_isLoadingFireStations) return;
+
+    try {
+      _isLoadingFireStations = true;
+      notifyListeners();
+
+      final stations = await FireStationService.instance.getFireStations();
+      _fireStations = stations;
+
+      _isLoadingFireStations = false;
+      notifyListeners();
+    } catch (e, stackTrace) {
+      log('[IncidentsProvider] Error fetching fire stations: $e');
+      log('[IncidentsProvider] Stack trace: $stackTrace');
+      _isLoadingFireStations = false;
+      notifyListeners();
+    }
   }
 
   @override
