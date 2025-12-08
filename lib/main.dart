@@ -27,7 +27,29 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _initializeCoreApp();
+
+  // Only initialize critical services before app starts
+  await BaseRepository.instance.initialize();
+  await SharedPrefs.instance.init();
+
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    if (!e.toString().contains('duplicate-app')) {
+      rethrow;
+    }
+  }
+
+  // Setup Crashlytics
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
   await setup();
   runApp(const MyApp());
 }
@@ -51,77 +73,6 @@ Future<void> setup() async {
   }
 }
 
-Future<void> _initializeCoreApp() async {
-  await BaseRepository.instance.initialize();
-  await SharedPrefs.instance.init();
-
-  // Initialize Firebase (handle case where it's already initialized by iOS/Android)
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    if (e.toString().contains('duplicate-app')) {
-      log('Firebase already initialized, using existing instance');
-    } else {
-      rethrow;
-    }
-  }
-
-  //initialize Firebase Crashlytics
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
-
-  await NotificationService.init();
-  await _getDeviceId();
-  await FirebaseService.instance.init();
-
-  // Initialize SubscriptionProvider with consistent user ID
-  try {
-    final userId = await SharedPrefs.instance.getOrGenerateUserId();
-    log('[Main] Initializing SubscriptionProvider with user ID: $userId');
-    await SubscriptionProvider().initialize(userId);
-    log('[Main] ✅ SubscriptionProvider initialized successfully');
-  } catch (e, stackTrace) {
-    log('[Main] ⚠️ Failed to initialize SubscriptionProvider: $e');
-    log('[Main] Stack trace: $stackTrace');
-    // Continue app startup even if subscription initialization fails
-  }
-
-  FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-  // Example: log startup event
-  Future<void> logEvent() async {
-    await analytics.logEvent(
-      name: 'test_event',
-      parameters: {
-        'string_param': 'hello',
-        'int_param': 42,
-      },
-    );
-  }
-}
-
-Future<void> _getDeviceId() async {
-  log('shared prefs device id => ${SharedPrefs.instance.deviceId}');
-  if (SharedPrefs.instance.deviceId != null) return;
-  var deviceInfo = DeviceInfoPlugin();
-  String? deviceId;
-
-  if (Platform.isIOS) {
-    var iosDeviceInfo = await deviceInfo.iosInfo;
-    deviceId = iosDeviceInfo.identifierForVendor;
-  } else if (Platform.isAndroid) {
-    var androidDeviceInfo = await deviceInfo.androidInfo;
-    deviceId = androidDeviceInfo.id;
-  }
-  log('Device Id: $deviceId');
-
-  SharedPrefs.instance.setDeviceId(deviceId ?? "");
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

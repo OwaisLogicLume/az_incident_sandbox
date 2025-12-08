@@ -97,7 +97,7 @@
          </BuildableReference>
       </MacroExpansion>
       <StoreKitConfigurationFileReference
-         identifier = "../Products.storekit">
+         identifier = "../Sales.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction

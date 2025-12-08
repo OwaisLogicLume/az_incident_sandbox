@@ -28,7 +28,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   final RevenueCatService _revenueCatService = RevenueCatService();
   final SubscriptionProvider _subscriptionProvider = SubscriptionProvider();
 
-  bool _isLoading = false; // Changed to false since we're not loading RevenueCat for now
+  bool _isLoading = true;
   bool _isPurchasing = false;
   Package? _monthlyPackage;
   Package? _yearlyPackage;
@@ -37,8 +37,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   void initState() {
     super.initState();
     plans = _getStaticPlans();
-    // TODO: Uncomment when App Store Connect permissions are fixed
-    // _initializeRevenueCat();
+    _initializeRevenueCat();
   }
 
   Future<void> _initializeRevenueCat() async {
@@ -97,14 +96,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Future<void> _handlePurchase() async {
     log('[SubscriptionScreen] 🚀 _handlePurchase called');
 
-    // TODO: Uncomment when App Store Connect permissions are fixed
-    // Temporarily just navigate to tabs screen for testing
-    if (mounted) {
-      log('[SubscriptionScreen] 🧭 Navigating to tabs (purchase logic commented out)...');
-      context.goNamed(AppRoute.tabs.name);
-    }
-
-    /* COMMENTED OUT - Uncomment when ready to implement purchases
     if (_isPurchasing) {
       log('[SubscriptionScreen] ⚠️ Already purchasing, returning');
       return;
@@ -187,20 +178,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         log('[SubscriptionScreen] 📝 Set _isPurchasing = false');
       }
     }
-    */
   }
 
   Future<void> _handleRestorePurchases() async {
     log('[SubscriptionScreen] 🔄 Restore purchases called');
 
-    // TODO: Uncomment when App Store Connect permissions are fixed
-    // Temporarily just navigate to tabs screen for testing
-    if (mounted) {
-      log('[SubscriptionScreen] 🧭 Navigating to tabs (restore logic commented out)...');
-      context.goNamed(AppRoute.tabs.name);
-    }
-
-    /* COMMENTED OUT - Uncomment when ready to implement restore
     if (_isPurchasing) return;
 
     setState(() => _isPurchasing = true);
@@ -238,13 +220,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         setState(() => _isPurchasing = false);
       }
     }
-    */
   }
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      child: AppScaffold(
+        body: SafeArea(
         child: _isLoading
             ? Center(
                 child: CircularProgressIndicator(
@@ -258,14 +241,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   children: [
                     Column(
                       children: [
-                        Align(
-                            alignment: Alignment.topRight,
-                            child: IconButton(
-                              onPressed: () {
-                                context.pushNamed(AppRoute.tabs.name);
-                              },
-                              icon: Icon(Icons.close_outlined),
-                            )),
+                        SizedBox(height: 16.h),
                         Text(
                           'Get Premium',
                           style: textStyle14Bold.copyWith(fontSize: 24.w),
@@ -336,6 +312,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   ],
                 ),
               ),
+        ),
       ),
     );
   }

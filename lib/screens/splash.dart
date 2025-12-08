@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
-import 'package:az_incident_alert/main.dart';
 import 'package:az_incident_alert/providers/subscription_provider.dart';
+import 'package:az_incident_alert/services/firabse_service.dart';
+import 'package:az_incident_alert/services/push_notification_service.dart';
 import 'package:az_incident_alert/utils/app_colors.dart';
 import 'package:az_incident_alert/utils/extensions/context_ext.dart';
 import 'package:az_incident_alert/utils/shared_prefs.dart';
 import 'package:az_incident_alert/utils/styles.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:provider/provider.dart';
 import '../utils/app_router.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -25,8 +25,95 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // startTimer(),
-    checkTrialStatus(context);
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    try {
+      log('[SplashScreen] 🚀 Starting app initialization...');
+
+      // Step 1: Get device ID (fast)
+      await _getDeviceId();
+
+      // Step 2: Initialize FirebaseService BEFORE notifications
+      log('[SplashScreen] 🔥 Initializing FirebaseService...');
+      await FirebaseService.instance.init().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          log('[SplashScreen] ⚠️ FirebaseService init timed out');
+        },
+      );
+
+      // Step 3: Initialize NotificationService (will request permissions on first launch)
+      log('[SplashScreen] 📱 Initializing NotificationService...');
+      await NotificationService.init();
+
+      // Step 4: Initialize SubscriptionProvider and check status
+      log('[SplashScreen] 💳 Initializing SubscriptionProvider...');
+      final userId = await SharedPrefs.instance.getOrGenerateUserId();
+
+      final subscriptionProvider = SubscriptionProvider();
+
+      // Initialize with timeout
+      await subscriptionProvider.initialize(userId).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          log('[SplashScreen] ⚠️ SubscriptionProvider init timed out');
+        },
+      );
+
+      // Check subscription status
+      final hasAccess = subscriptionProvider.hasAccess;
+      log('[SplashScreen] 📊 Has access: $hasAccess');
+      log('[SplashScreen] 📊 Status: ${subscriptionProvider.status}');
+
+      log('[SplashScreen] ✅ All initialization complete!');
+
+      // Small delay for smooth transition
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      // Navigate to appropriate screen
+      if (mounted) {
+        if (hasAccess) {
+          log('[SplashScreen] ✅ Navigating to tabs');
+          context.goNamed(AppRoute.tabs.name);
+        } else {
+          log('[SplashScreen] 📝 Navigating to subscription screen');
+          context.goNamed(AppRoute.subscriptionScreen.name);
+        }
+      }
+    } catch (e, stackTrace) {
+      log('[SplashScreen] ❌ Initialization error: $e');
+      log('[SplashScreen] Stack trace: $stackTrace');
+
+      // On error, go to subscription screen to be safe
+      if (mounted) {
+        await Future.delayed(const Duration(milliseconds: 200));
+        context.goNamed(AppRoute.subscriptionScreen.name);
+      }
+    }
+  }
+
+  Future<void> _getDeviceId() async {
+    log('[SplashScreen] 📱 Getting device ID...');
+    if (SharedPrefs.instance.deviceId != null) {
+      log('[SplashScreen] ✅ Device ID already exists');
+      return;
+    }
+
+    var deviceInfo = DeviceInfoPlugin();
+    String? deviceId;
+
+    if (Platform.isIOS) {
+      var iosDeviceInfo = await deviceInfo.iosInfo;
+      deviceId = iosDeviceInfo.identifierForVendor;
+    } else if (Platform.isAndroid) {
+      var androidDeviceInfo = await deviceInfo.androidInfo;
+      deviceId = androidDeviceInfo.id;
+    }
+
+    SharedPrefs.instance.setDeviceId(deviceId ?? "");
+    log('[SplashScreen] ✅ Device ID: $deviceId');
   }
 
   @override
@@ -40,60 +127,22 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Container(
         color: context.appColors.bgColor,
         child: Center(
-          child: Text(
-            "App \nLogo",
-            style: textStyle22Bold.copyWith(fontSize: 42),
-            textAlign: TextAlign.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Cactus Alert",
+                style: textStyle22Bold.copyWith(fontSize: 42),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              CircularProgressIndicator(
+                color: AppColors.dPrimary,
+              ),
+            ],
           ),
         ),
       ),
     );
-  }
-
-  // startTimer() {
-  //   var duration = const Duration(milliseconds: 2000);
-  //   return Future.delayed(duration, () {
-  //     context.goNamed(AppRoute.subscriptionScreen.name);
-  //   });
-  // }
-}
-
-void checkTrialStatus(BuildContext context) async {
-  try {
-    log('[SplashScreen] Checking subscription status...');
-
-    // Get SubscriptionProvider to check subscription status
-    final subscriptionProvider = context.read<SubscriptionProvider>();
-
-    // Refresh subscription status from RevenueCat
-    await subscriptionProvider.refreshSubscriptionStatus();
-
-    final hasAccess = subscriptionProvider.hasAccess;
-    final status = subscriptionProvider.status;
-
-    log('[SplashScreen] Subscription status: $status');
-    log('[SplashScreen] Has access: $hasAccess');
-
-    if (hasAccess) {
-      // User has active trial or subscription, navigate to tabs
-      log('[SplashScreen] ✅ User has access, navigating to tabs');
-      if (context.mounted) {
-        context.goNamed(AppRoute.tabs.name);
-      }
-    } else {
-      // No subscription, navigate to subscription screen
-      log('[SplashScreen] ❌ No subscription, navigating to subscription screen');
-      if (context.mounted) {
-        context.goNamed(AppRoute.subscriptionScreen.name);
-      }
-    }
-  } catch (e, stackTrace) {
-    log('[SplashScreen] ❌ Error checking subscription: $e');
-    log('[SplashScreen] Stack trace: $stackTrace');
-
-    // On error, navigate to subscription screen to be safe
-    if (context.mounted) {
-      context.goNamed(AppRoute.subscriptionScreen.name);
-    }
   }
 }

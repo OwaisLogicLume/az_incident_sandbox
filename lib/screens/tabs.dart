@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:az_incident_alert/providers/app_provider.dart';
 import 'package:az_incident_alert/providers/incidents_provider.dart';
 import 'package:az_incident_alert/screens/incidents_screen.dart';
@@ -28,8 +26,6 @@ class TabScreen extends StatefulWidget {
 }
 
 class _TabScreenState extends State<TabScreen> {
-
-
   @override
   void dispose() {
     super.dispose();

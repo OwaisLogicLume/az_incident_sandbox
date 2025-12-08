@@ -26,9 +26,10 @@ class NotificationService {
 
   static init() async {
     final notificationPermissions = await _messaging.requestPermission(
-      provisional: true,
+      provisional: false,
       alert: true,
       badge: true,
+      sound: true,
     );
     debugPrint(
         'notificationPermissions.alert => ${notificationPermissions.alert}');
