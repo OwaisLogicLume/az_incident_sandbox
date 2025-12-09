@@ -141,46 +141,48 @@ class IncidentsProvider extends ChangeNotifier {
   }
 
   /// Get auto-detected map type based on system theme (light/dark mode)
-  /// INVERTED: Due to Mapbox style IDs being swapped in the account
   String getAutoMapTypeFromSystem(BuildContext context) {
     print('[MapType] ===== getAutoMapTypeFromSystem called =====');
-    final brightness = MediaQuery.of(context).platformBrightness;
-    print('[MapType] Platform brightness detected: $brightness');
-    // INVERTED: Light system -> Night constant (which maps to light-looking style)
-    // INVERTED: Dark system -> Day constant (which maps to dark-looking style)
-    final mapType = brightness == Brightness.light ? KNightMapType : KDayMapType;
-    print('[MapType] Returning map type: $mapType (INVERTED: Light->Night, Dark->Day)');
+
+    // Use WidgetsBinding as it's always up-to-date with system theme
+    // MediaQuery can be stale when app resumes from background
+    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    print('[MapType] WidgetsBinding brightness: $brightness');
+
+    // Straightforward mapping: Light -> Day, Dark -> Night
+    final mapType = brightness == Brightness.light ? KDayMapType : KNightMapType;
+    print('[MapType] Returning map type: $mapType (Light->Day, Dark->Night)');
     return mapType;
   }
 
   /// Initialize map type: follows system theme first time, then user preference
   /// Called when provider is initialized or app launches
   void initializeMapType(BuildContext context) {
-    log('[MapType] ===== initializeMapType called =====');
-    log('[MapType] Current map type before init: $_mapType');
-    log('[MapType] hasUserSelectedMapType: ${SharedPrefs.instance.hasUserSelectedMapType}');
+    print('[MapType] ===== initializeMapType called =====');
+    print('[MapType] Current map type before init: $_mapType');
+    print('[MapType] hasUserSelectedMapType: ${SharedPrefs.instance.hasUserSelectedMapType}');
 
     // Check if user has manually selected a map type before
     if (SharedPrefs.instance.hasUserSelectedMapType) {
       // User has selected before - load their saved preference
       final savedMapType = SharedPrefs.instance.savedMapType;
-      log('[MapType] User has saved preference: $savedMapType');
+      print('[MapType] User has saved preference: $savedMapType');
       if (savedMapType != null) {
         _mapType = savedMapType;
         if (savedMapType == KDayMapType || savedMapType == KNightMapType) {
           _lastDayNightMapType = savedMapType;
         }
-        log('[MapType] Loaded saved map type: $savedMapType');
+        print('[MapType] Loaded saved map type: $savedMapType');
       }
     } else {
       // First time - follow system theme
-      log('[MapType] First time - checking system theme');
+      print('[MapType] First time - checking system theme');
       _mapType = getAutoMapTypeFromSystem(context);
       _lastDayNightMapType = _mapType;
-      log('[MapType] Set map type from system: $_mapType');
+      print('[MapType] Set map type from system: $_mapType');
     }
-    log('[MapType] Final map type after init: $_mapType');
-    log('[MapType] Calling notifyListeners()');
+    print('[MapType] Final map type after init: $_mapType');
+    print('[MapType] Calling notifyListeners()');
     notifyListeners();
   }
 
