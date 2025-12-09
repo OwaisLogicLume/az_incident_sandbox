@@ -5,6 +5,7 @@ import 'package:az_incident_alert/screens/map_screen.dart';
 import 'package:az_incident_alert/utils/app_colors.dart';
 import 'package:az_incident_alert/utils/app_constants.dart';
 import 'package:az_incident_alert/utils/extensions/context_ext.dart';
+import 'package:az_incident_alert/utils/shared_prefs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -25,10 +26,32 @@ class TabScreen extends StatefulWidget {
   }
 }
 
-class _TabScreenState extends State<TabScreen> {
+class _TabScreenState extends State<TabScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    print('[TabScreen] initState called');
+    WidgetsBinding.instance.addObserver(this);
+    // Initialize map type on first load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('[TabScreen] Post frame callback - initializing map type');
+      context.read<IncidentsProvider>().initializeMapType(context);
+    });
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    super.didChangePlatformBrightness();
+    // Only update if user hasn't manually selected a map type
+    if (!SharedPrefs.instance.hasUserSelectedMapType) {
+      context.read<IncidentsProvider>().initializeMapType(context);
+    }
   }
 
   @override

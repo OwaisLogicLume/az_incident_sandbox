@@ -109,7 +109,7 @@ class MyApp extends StatelessWidget {
             Consumer<AppProvider>(builder: (context, provider, _) {
           return MaterialApp.router(
             title: 'Incidence App',
-            themeMode: provider.currentThemeMode,
+            themeMode: ThemeMode.system,
             theme: AppThemes.lightTheme,
             darkTheme: AppThemes.darkTheme,
             routerConfig: AppNavigator.router,

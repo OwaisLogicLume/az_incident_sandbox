@@ -286,7 +286,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           width: double.infinity,
                           child: AppButton(
                             backgroundColor: AppColors.dPrimary,
-                            onPressed: _handlePurchase,
+                            onPressed: () {
+                              // TODO: Re-enable purchase logic when needed
+                              // _handlePurchase();
+
+                              // Temporary: Navigate directly to tabs screen
+                              context.goNamed(AppRoute.tabs.name);
+                            },
                             text: 'Start 3 day free trial',
                           ),
                         ),

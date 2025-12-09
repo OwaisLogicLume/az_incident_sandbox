@@ -62,20 +62,6 @@ class _IncidencesScreenState extends State<IncidencesScreen> {
             },
             icon: const Icon(CupertinoIcons.refresh),
           ),
-          PopupMenuButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(width: 180, height: 160),
-            position: PopupMenuPosition.under,
-            itemBuilder: (context) {
-              return [
-                _buildPopMenuItem(
-                    'Light', CupertinoIcons.sun_max_fill, ThemeMode.light),
-                _buildPopMenuItem('Dark', CupertinoIcons.moon, ThemeMode.dark),
-                _buildPopMenuItem(
-                    'System', CupertinoIcons.gear_big, ThemeMode.system),
-              ];
-            },
-          ),
         ],
         appbarTitle: 'CACTUS ALERT',
         titleStyle: textStyle22Bold.copyWith(
@@ -114,22 +100,4 @@ class _IncidencesScreenState extends State<IncidencesScreen> {
     });
   }
 
-  PopupMenuItem _buildPopMenuItem(String text, IconData icon, ThemeMode mode) {
-    return PopupMenuItem(
-      child: Consumer<AppProvider>(builder: (context, provider, _) {
-        return ListTile(
-          onTap: () {
-            provider.changeThemeMode(mode);
-          },
-          dense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-          leading: Icon(icon),
-          title: Text(text, style: textStyle14),
-          trailing: provider.currentThemeMode == mode
-              ? const CircleAvatar(radius: 6, backgroundColor: AppColors.lTile3)
-              : null,
-        );
-      }),
-    );
-  }
 }

@@ -33,7 +33,17 @@ class MapLayerSwitch extends StatelessWidget {
                 label: 'Day',
                 mapType: KDayMapType,
                 isSelected: provider.mapType == KDayMapType,
-                onTap: () => provider.changeMapType(KDayMapType),
+                onTap: () {
+                  print('[MapLayerSwitch] Day button tapped');
+                  print('[MapLayerSwitch] Current mapType before change: ${provider.mapType}');
+                  try {
+                    provider.changeMapType(KDayMapType);
+                    print('[MapLayerSwitch] changeMapType(KDayMapType) called');
+                    print('[MapLayerSwitch] Current mapType after change: ${provider.mapType}');
+                  } catch (e) {
+                    print('[MapLayerSwitch] ERROR: $e');
+                  }
+                },
                 isFirst: true,
               ),
               _buildSegment(
@@ -41,7 +51,17 @@ class MapLayerSwitch extends StatelessWidget {
                 label: 'Night',
                 mapType: KNightMapType,
                 isSelected: provider.mapType == KNightMapType,
-                onTap: () => provider.changeMapType(KNightMapType),
+                onTap: () {
+                  print('[MapLayerSwitch] Night button tapped');
+                  print('[MapLayerSwitch] Current mapType before change: ${provider.mapType}');
+                  try {
+                    provider.changeMapType(KNightMapType);
+                    print('[MapLayerSwitch] changeMapType(KNightMapType) called');
+                    print('[MapLayerSwitch] Current mapType after change: ${provider.mapType}');
+                  } catch (e) {
+                    print('[MapLayerSwitch] ERROR: $e');
+                  }
+                },
               ),
               _buildSegment(
                 context: context,

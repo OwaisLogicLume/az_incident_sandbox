@@ -36,6 +36,7 @@ class _MapBoxWidgetState extends State<MapBoxWidget> {
     return Consumer<IncidentsProvider>(
       builder: (context, provider, _) {
          final styleUri = _getStyleUri(provider);
+         print('[MapWidget] Building map with styleUri: $styleUri');
 
          // Update fire station markers when showFireStations changes
          WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -74,14 +75,21 @@ class _MapBoxWidgetState extends State<MapBoxWidget> {
     );
   }
 String _getStyleUri(IncidentsProvider provider) {
+  print('[MapWidget] Getting style URI for mapType: ${provider.mapType}');
   if (provider.mapType == KDayMapType) {
+    // Note: This Mapbox style ID is actually a light/day style despite the ID
+    print('[MapWidget] Returning DAY style URI: cmb4lpzb800l101sda1ewfx4g');
     return "mapbox://styles/azincidentalert/cmb4lpzb800l101sda1ewfx4g";
   } else if (provider.mapType == KNightMapType) {
+    // Note: This Mapbox style ID is actually a dark/night style despite the ID
+    print('[MapWidget] Returning NIGHT style URI: cmb4ptheg00ji01qxch9ghb8c');
     return 'mapbox://styles/azincidentalert/cmb4ptheg00ji01qxch9ghb8c';
 
   } else if (provider.mapType == kSatelliteMapType) {
+    print('[MapWidget] Returning SATELLITE style URI');
     return MapboxStyles.SATELLITE_STREETS;
   } else {
+    print('[MapWidget] Returning default STREETS style URI');
     return MapboxStyles.MAPBOX_STREETS;
   }
 }

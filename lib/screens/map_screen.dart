@@ -1,5 +1,6 @@
 import 'package:az_incident_alert/providers/incidents_provider.dart';
 import 'package:az_incident_alert/utils/app_constants.dart';
+import 'package:az_incident_alert/utils/shared_prefs.dart';
 import 'package:az_incident_alert/widgets/app_scaffold.dart';
 import 'package:az_incident_alert/widgets/esri_map.dart';
 import 'package:az_incident_alert/widgets/map_layer_switch.dart';
@@ -24,15 +25,6 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Initialize map type based on time of day
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<IncidentsProvider>().initializeMapType();
-    });
-  }
-
   @override
   Widget build(
     BuildContext context,

@@ -19,6 +19,8 @@ class SharedPrefs {
   final String _isTrialActiveKey = 'isTrialActive';
   final String _isSubscribedKey = 'isSubscribed';
   final String _isAdminModeKey = 'isAdminMode';
+  final String _mapTypeKey = 'mapType';
+  final String _hasUserSelectedMapTypeKey = 'hasUserSelectedMapType';
 
   init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -153,5 +155,23 @@ class SharedPrefs {
   Future<void> setAdminMode(bool value) async {
     await _prefs.setBool(_isAdminModeKey, value);
     log('Admin mode ${value ? 'enabled' : 'disabled'}');
+  }
+
+  /// Map Type Persistence
+  String? get savedMapType => _prefs.getString(_mapTypeKey);
+
+  Future<void> saveMapType(String mapType) async {
+    await _prefs.setString(_mapTypeKey, mapType);
+    await _prefs.setBool(_hasUserSelectedMapTypeKey, true);
+    log('Map type saved: $mapType');
+  }
+
+  bool get hasUserSelectedMapType => _prefs.getBool(_hasUserSelectedMapTypeKey) ?? false;
+
+  /// Clear map type preference to reset to system theme detection
+  Future<void> clearMapTypePreference() async {
+    await _prefs.remove(_mapTypeKey);
+    await _prefs.remove(_hasUserSelectedMapTypeKey);
+    log('Map type preference cleared - will follow system theme');
   }
 }
