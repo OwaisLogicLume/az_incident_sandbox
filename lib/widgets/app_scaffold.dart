@@ -32,13 +32,15 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: appbarTitle != null
           ? AppBar(
               title: Text(
                 appbarTitle ?? 'Title',
                 style: (titleStyle ?? textStyle22Bold).copyWith(
-                  color: context.isDark ? Colors.white : AppColors.white,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
               systemOverlayStyle:
@@ -46,7 +48,15 @@ class AppScaffold extends StatelessWidget {
               backgroundColor:
                   appbarBG ?? Theme.of(context).appBarTheme.backgroundColor,
               actions: appbarActions,
-              bottom: appbarBottom,
+              bottom: appbarBottom ?? PreferredSize(
+                preferredSize: const Size.fromHeight(0.5),
+                child: Container(
+                  height: 0.5,
+                  color: isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.black.withOpacity(0.1),
+                ),
+              ),
             )
           : null,
       body: body,

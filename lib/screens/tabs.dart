@@ -2,14 +2,10 @@ import 'package:az_incident_alert/providers/app_provider.dart';
 import 'package:az_incident_alert/providers/incidents_provider.dart';
 import 'package:az_incident_alert/screens/incidents_screen.dart';
 import 'package:az_incident_alert/screens/map_screen.dart';
-import 'package:az_incident_alert/utils/app_colors.dart';
 import 'package:az_incident_alert/utils/app_constants.dart';
-import 'package:az_incident_alert/utils/extensions/context_ext.dart';
 import 'package:az_incident_alert/utils/shared_prefs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:provider/provider.dart';
 
 class TabScreen extends StatefulWidget {
@@ -56,52 +52,128 @@ class _TabScreenState extends State<TabScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.theme.brightness == Brightness.dark;
-    return SafeArea(
-      child: Consumer<AppProvider>(builder: (context, provider, _) {
-        return Scaffold(
-          extendBody: true,
-          extendBodyBehindAppBar: false,
-          body: [
-            const IncidencesScreen(),
-            MapScreen(latLng: context.read<IncidentsProvider>().currentLatLng),
-          ][provider.currentIndex],
-          bottomNavigationBar: bottomNavigationBar(provider, isDark),
-        );
-      }),
-    );
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Consumer<AppProvider>(builder: (context, provider, _) {
+      return Theme.of(context).platform == TargetPlatform.iOS
+          ? Scaffold(
+              body: [
+                const IncidencesScreen(),
+                MapScreen(latLng: context.read<IncidentsProvider>().currentLatLng),
+              ][provider.currentIndex],
+              bottomNavigationBar: Container(
+                decoration: BoxDecoration(
+                  color: CupertinoTheme.of(context).brightness == Brightness.dark
+                      ? CupertinoColors.black
+                      : CupertinoColors.white,
+                  border: Border(
+                    top: BorderSide(
+                      color: CupertinoColors.separator.resolveFrom(context).withOpacity(0.3),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: SizedBox(
+                    height: 50,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildTabItem(
+                          context: context,
+                          icon: CupertinoIcons.house,
+                          activeIcon: CupertinoIcons.house_fill,
+                          label: 'Home',
+                          index: 0,
+                          currentIndex: provider.currentIndex,
+                        ),
+                        _buildTabItem(
+                          context: context,
+                          icon: CupertinoIcons.map,
+                          activeIcon: CupertinoIcons.map_fill,
+                          label: 'Map',
+                          index: 1,
+                          currentIndex: provider.currentIndex,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : Scaffold(
+              body: SafeArea(
+                bottom: false,
+                child: [
+                  const IncidencesScreen(),
+                  MapScreen(latLng: context.read<IncidentsProvider>().currentLatLng),
+                ][provider.currentIndex],
+              ),
+              bottomNavigationBar: NavigationBar(
+                height: 60,
+                selectedIndex: provider.currentIndex,
+                onDestinationSelected: _onTabChange,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(CupertinoIcons.house, size: 24),
+                    selectedIcon: Icon(CupertinoIcons.house_fill, size: 24),
+                    label: 'Home',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(CupertinoIcons.map, size: 24),
+                    selectedIcon: Icon(CupertinoIcons.map_fill, size: 24),
+                    label: 'Map',
+                  ),
+                ],
+              ),
+            );
+    });
   }
 
-  Widget bottomNavigationBar(
-    AppProvider provider,
-    bool isDark,
-  ) {
-    /// Snake Navigation bar
-    return SnakeNavigationBar.color(
-      height: 60.h,
-      elevation: 30,
-      backgroundColor: context.appColors.bgColor,
-      snakeViewColor: context.appColors.primaryColor,
-      selectedItemColor: context.appColors.bgColor,
-      selectedLabelStyle: TextStyle(color: context.appColors.bgColor),
-      behaviour: SnakeBarBehaviour.pinned,
-      snakeShape: SnakeShape.rectangle,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-      padding: EdgeInsets.all(10.r),
-      currentIndex: provider.currentIndex,
-      onTap: _onTabChange,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(CupertinoIcons.house),
-          label: 'Arizona firescanner',
-          activeIcon: Icon(CupertinoIcons.house_fill),
+  Widget _buildTabItem({
+    required BuildContext context,
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required int index,
+    required int currentIndex,
+  }) {
+    final isActive = index == currentIndex;
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+
+    final color = isActive
+        ? (isDark ? CupertinoColors.white : CupertinoTheme.of(context).primaryColor)
+        : CupertinoColors.inactiveGray.resolveFrom(context);
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onTabChange(index),
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isActive ? activeIcon : icon,
+                color: color,
+                size: 24,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
-        BottomNavigationBarItem(
-          icon: Icon(CupertinoIcons.map),
-          label: 'Alerts',
-          activeIcon: Icon(CupertinoIcons.map_fill),
-        ),
-      ],
+      ),
     );
   }
 

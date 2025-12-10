@@ -208,14 +208,20 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
                     ? provider.getWildcardDisplayName(unit)
                     : unit;
 
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  elevation: 3,
+                  color: isDark
+                      ? Colors.grey[850]
+                      : Colors.grey[100],
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: Theme.of(context).dividerColor.withOpacity(0.2),
+                      color: isDark
+                          ? Colors.grey[700]!
+                          : Colors.grey[300]!,
                       width: 1,
                     ),
                   ),

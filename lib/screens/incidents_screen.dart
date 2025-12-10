@@ -63,10 +63,11 @@ class _IncidencesScreenState extends State<IncidencesScreen> {
             icon: const Icon(CupertinoIcons.refresh),
           ),
         ],
-        appbarTitle: 'CACTUS ALERT',
-        titleStyle: textStyle22Bold.copyWith(
-          fontFamily: 'sedansc',
-          fontSize: 19,
+        appbarTitle: 'Cactus Alert',
+        titleStyle: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.5,
         ),
         body: Stack(
           alignment: Alignment.bottomRight,

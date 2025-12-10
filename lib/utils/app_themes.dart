@@ -11,11 +11,16 @@ class AppThemes {
     primaryColor: AppColors.lPrimary,
     scaffoldBackgroundColor: AppColors.lBg,
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.lPrimary,
-      foregroundColor: AppColors.white,
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.black12,
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarBrightness: Brightness.light,
-        statusBarColor: AppColors.lPrimary,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarColor: Colors.transparent,
       ),
     ),
     pageTransitionsTheme: const PageTransitionsTheme(
@@ -28,6 +33,19 @@ class AppThemes {
 
   static final darkTheme = ThemeData(
     brightness: Brightness.dark,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.white10,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.light,
+        statusBarColor: Colors.transparent,
+      ),
+    ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: CupertinoPageTransitionsBuilder(),

@@ -30,9 +30,8 @@ class _MapScreenState extends State<MapScreen> {
     BuildContext context,
   ) {
     return AppScaffold(
-      
-      body: Padding(
-        padding: EdgeInsets.only(bottom: 75.h),
+
+      body: SafeArea(
         child: Stack(
           children: [
             MapBoxWidget(
