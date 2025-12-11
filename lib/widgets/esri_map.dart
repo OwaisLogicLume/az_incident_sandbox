@@ -286,7 +286,21 @@ final scaleFactor = 30 / mbxImage.width;
       // Create annotations for each fire station
       for (FireStation station in provider.fireStations) {
         try {
-          final scaleFactor = 30 / mbxImage.width;
+          // Extract station number
+          String? stationNumber;
+          if (station.id.startsWith('ST') || station.id.startsWith('st')) {
+            stationNumber = station.id.substring(2);
+          } else if (RegExp(r'^\d+$').hasMatch(station.id)) {
+            stationNumber = station.id;
+          } else {
+            final numberMatch = RegExp(r'Station\s+#?(\d+)', caseSensitive: false).firstMatch(station.name);
+            if (numberMatch != null) {
+              stationNumber = numberMatch.group(1);
+            }
+          }
+
+          // Reduce icon size by 50% (15 instead of 30)
+          final scaleFactor = 15 / mbxImage.width;
           final pointAnnotationOptions = PointAnnotationOptions(
             geometry: Point(
               coordinates: Position(
@@ -296,6 +310,12 @@ final scaleFactor = 30 / mbxImage.width;
             ),
             iconImage: imageId,
             iconSize: scaleFactor,
+            textField: stationNumber ?? '', // Add station number as text
+            textSize: 11.0, // Slightly larger to appear bolder
+            textColor: Colors.black.value,
+            textOffset: [0.0, 1.5], // Position text below icon
+            textHaloColor: Colors.white.value,
+            textHaloWidth: 1.5, // Thicker halo for bolder appearance
           );
 
           final annotation = await _fireStationAnnotationManager!.create(pointAnnotationOptions);

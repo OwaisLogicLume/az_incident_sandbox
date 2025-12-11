@@ -56,9 +56,9 @@ class SubscriptionPlanCard extends StatelessWidget {
                     children: [
                       Text(
                         plan.title,
-                        style: textStyle14Bold.copyWith(
-                          fontSize: 14,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        style: textStyle22Bold.copyWith(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -70,29 +70,13 @@ class SubscriptionPlanCard extends StatelessWidget {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        plan.price.split('/')[0], // Just the price part
-                        style: textStyle22Bold.copyWith(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w700,
-                          height: 1,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          '/${plan.price.split('/')[1]}', // Billing period
-                          style: textStyle14.copyWith(
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 8),
+                  Text(
+                    plan.price,
+                    style: textStyle14.copyWith(
+                      fontSize: 16,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
                   ),
                   if (plan.subtitle != null) ...[
                     const SizedBox(height: 16),

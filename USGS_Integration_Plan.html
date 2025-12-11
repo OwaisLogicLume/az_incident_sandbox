@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USGS Fire Station Integration - Complete Implementation Plan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            border-bottom: 4px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 5px solid #3498db;
+        }
+
+        h3 {
+            color: #34495e;
+            font-size: 1.3em;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.1em;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .executive-summary {
+            background: #ecf0f1;
+            padding: 25px;
+            border-radius: 5px;
+            margin: 25px 0;
+            border-left: 5px solid #3498db;
+        }
+
+        .highlight-box {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #4caf50;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #ff9800;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .checkmark {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .crossmark {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .info-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin: 5px;
+        }
+
+        .badge-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .badge-info {
+            background: #2196f3;
+            color: white;
+        }
+
+        .badge-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .architecture-diagram {
+            background: #f9f9f9;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .timeline-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #3498db;
+            background: #f8f9fa;
+        }
+
+        .timeline-item strong {
+            color: #3498db;
+        }
+
+        .cost-savings {
+            font-size: 2em;
+            color: #4caf50;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background: #e8f5e9;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ USGS Fire Station Integration</h1>
+        <p style="font-size: 1.1em; color: #666; margin-top: 10px;">Complete Implementation Plan for AZ Incident Alert App</p>
+        <p style="color: #999; margin-top: 5px;">Generated: December 10, 2025</p>
+
+        <div class="executive-summary">
+            <h2 style="margin-top: 0; border: none; padding: 0;">Executive Summary</h2>
+
+            <h3>Current State</h3>
+            <ul>
+                <li>App uses <strong>Mapbox Maps</strong> to display incident markers (real-time API)</li>
+                <li>Fire stations from <strong>Google Places API</strong> (real-time, costs money)</li>
+                <li>Both displayed together successfully</li>
+                <li>~60 Phoenix fire stations currently shown</li>
+            </ul>
+
+            <h3>Proposed State</h3>
+            <ul>
+                <li><strong>Incidents:</strong> Keep existing real-time API (no changes)</li>
+                <li><strong>Fire Stations:</strong> Switch to USGS National Structures Dataset (free, cached locally)</li>
+                <li><strong>Coverage:</strong> Arizona state-wide (~1000 stations)</li>
+                <li><strong>Strategy:</strong> Direct switch with full background updates</li>
+            </ul>
+
+            <div class="cost-savings">
+                💰 Annual Savings: $6,000 - $12,000
+            </div>
+
+            <h3>Key Benefits</h3>
+            <ul>
+                <li><span class="checkmark">✓</span> Offline support for fire station data</li>
+                <li><span class="checkmark">✓</span> 90%+ reduction in network usage</li>
+                <li><span class="checkmark">✓</span> Faster map load times (cached data)</li>
+                <li><span class="checkmark">✓</span> Zero API costs vs $500-1000/month</li>
+                <li><span class="checkmark">✓</span> Official government data source</li>
+                <li><span class="checkmark">✓</span> State-wide coverage for future expansion</li>
+            </ul>
+        </div>
+
+        <h2>1. Map Compatibility Analysis</h2>
+
+        <h3>✓ Mapbox is Fully Compatible</h3>
+
+        <div class="highlight-box">
+            <strong>Your Current Setup:</strong>
+            <ul>
+                <li>Mapbox Maps Flutter SDK v2.8.0</li>
+                <li>Uses WGS84 (lat/lng) coordinates</li>
+                <li>Already has separate annotation managers for incidents and fire stations</li>
+                <li>Map widget: <code>lib/widgets/esri_map.dart</code></li>
+            </ul>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Aspect</th>
+                    <th>USGS Data Format</th>
+                    <th>Solution</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Coordinate System</td>
+                    <td>Web Mercator (EPSG:102100)</td>
+                    <td>Convert to WGS84 using proj4dart</td>
+                </tr>
+                <tr>
+                    <td>Data Format</td>
+                    <td>GeoJSON</td>
+                    <td>Parse with built-in JSON decoder</td>
+                </tr>
+                <tr>
+                    <td>Map Display</td>
+                    <td>Point geometries</td>
+                    <td>Works with existing PointAnnotationManager</td>
+                </tr>
+                <tr>
+                    <td>Multiple Layers</td>
+                    <td>Incidents + Fire Stations</td>
+                    <td>Already working! Separate managers</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><strong>Result:</strong> <span class="checkmark">No changes needed to map widget!</span> Only coordinate conversion required before storing/displaying.</p>
+
+        <h2>2. Complete Data Flow Architecture</h2>
+
+        <h3>Incidents Flow (No Changes)</h3>
+        <div class="architecture-diagram">Phoenix Fire Active Incidents API
+    ↓
+Fetch every 30 seconds
+    ↓
+Firebase Realtime Database Cache
+    ↓
+IncidentsProvider
+    ↓
+MapBoxWidget
+    ↓
+PointAnnotationManager (Incident Markers)
+    ↓
+Dynamic icons based on incident type</div>
+
+        <h3>Fire Stations Flow (New USGS)</h3>
+        <div class="architecture-diagram">USGS National Structures API
+(carto.nationalmap.gov)
+    ↓
+Download GeoJSON (one-time or weekly update)
+    ↓
+Parse & Convert Coordinates
+(Web Mercator → WGS84)
+    ↓
+Hive Local Cache
+(~180-200 KB for Arizona)
+    ↓
+FireStationService (cache-first)
+    ↓
+IncidentsProvider
+    ↓
+MapBoxWidget
+    ↓
+FireStationAnnotationManager (Fire Station Markers)
+    ↓
+Static fire station icon</div>
+
+        <h3>Combined Display</h3>
+        <p><strong>Both data types display simultaneously on the same Mapbox map:</strong></p>
+        <ul>
+            <li>Incidents: Real-time, dynamic markers (fire/medical/rescue icons)</li>
+            <li>Fire Stations: Cached, static markers (fire station icon)</li>
+            <li>Toggle control: User can show/hide fire stations</li>
+            <li>Click handlers: Separate bottom sheets for each type</li>
+        </ul>
+
+        <h2>3. Detailed Implementation Steps</h2>
+
+        <h3>Phase 1: Storage & Download Infrastructure</h3>
+        <div class="timeline-item">
+            <strong>Estimated Time:</strong> 8-10 hours
+        </div>
+
+        <h4>Step 1.1: Add Dependencies (15 minutes)</h4>
+        <div class="code-block">dependencies:
+  hive: ^2.2.3              # Local NoSQL database
+  hive_flutter: ^1.1.0      # Flutter integration
+  proj4dart: ^2.1.0         # Coordinate conversion
+  workmanager: ^0.5.2       # Background updates
+
+dev_dependencies:
+  hive_generator: ^2.0.1    # Code generation
+  build_runner: ^2.4.6      # Build tool</div>
+
+        <h4>Step 1.2: Create Hive Models (30 minutes)</h4>
+        <p>Create <code>lib/models/cached_fire_station.dart</code>:</p>
+        <ul>
+            <li><code>CachedFireStation</code> class with Hive annotations</li>
+            <li>Fields: id, name, lat, lng, address, loadDate, adminType</li>
+            <li><code>FireStationCache</code> metadata class</li>
+            <li>Run code generation: <code>flutter pub run build_runner build</code></li>
+        </ul>
+
+        <h4>Step 1.3: Build USGS Service (2 hours)</h4>
+        <p>Create <code>lib/services/usgs_service.dart</code>:</p>
+        <ul>
+            <li>Query USGS API for Arizona state-wide data</li>
+            <li>Handle pagination (max 2000 records per request)</li>
+            <li>Convert Web Mercator to WGS84 using proj4dart</li>
+            <li>Parse GeoJSON FeatureCollection</li>
+            <li>Extract: NAME, ADDRESS, CITY, STATE, ZIPCODE, LOADDATE, ADMINTYPE</li>
+            <li>Error handling with retry logic</li>
+            <li>Update detection method using LOADDATE field</li>
+        </ul>
+
+        <h4>Step 1.4: Build Cache Service (1.5 hours)</h4>
+        <p>Create <code>lib/services/fire_station_cache_service.dart</code>:</p>
+        <ul>
+            <li>Initialize Hive boxes on app start</li>
+            <li><code>saveStations()</code> - Store fire stations in Hive</li>
+            <li><code>loadStations()</code> - Load from cache</li>
+            <li><code>clearCache()</code> - Clear and re-download</li>
+            <li><code>shouldCheckForUpdates()</code> - Check if weekly refresh needed</li>
+            <li>Store metadata: lastDownloadDate, maxLoadDate, recordCount</li>
+        </ul>
+
+        <h4>Step 1.5: Initialize Hive (15 minutes)</h4>
+        <p>Update <code>lib/main.dart</code>:</p>
+        <ul>
+            <li>Add <code>await FireStationCacheService.instance.init();</code> before <code>runApp()</code></li>
+            <li>Register Hive adapters</li>
+            <li>Open Hive boxes</li>
+        </ul>
+
+        <h4>Step 1.6: Add SharedPrefs Keys (15 minutes)</h4>
+        <p>Update <code>lib/utils/shared_prefs.dart</code>:</p>
+        <ul>
+            <li>Add <code>fireStationSource</code> key (for future toggle support)</li>
+            <li>Add <code>usgsLastCheckDate</code> key for update tracking</li>
+        </ul>
+
+        <h3>Phase 2: Service Layer Migration</h3>
+        <div class="timeline-item">
+            <strong>Estimated Time:</strong> 4-6 hours
+        </div>
+
+        <h4>Step 2.1: Update FireStationService (2 hours)</h4>
+        <p>Modify <code>lib/services/fire_station_service.dart</code>:</p>
+        <ul>
+            <li>Add <code>getFireStationsFromUSGS()</code> method</li>
+            <li>Implement cache-first loading:
+                <ol>
+                    <li>Check Hive cache first</li>
+                    <li>If cached and not expired: return immediately</li>
+                    <li>If not cached or force refresh: download from USGS</li>
+                    <li>Save to cache after download</li>
+                </ol>
+            </li>
+            <li>Remove Google Places implementation (direct switch)</li>
+            <li>Add <code>forceRefreshUSGS()</code> method</li>
+            <li>Background update check (weekly)</li>
+            <li>Error handling with cache fallback</li>
+        </ul>
+
+        <h4>Step 2.2: Update FireStation Model (30 minutes)</h4>
+        <p>Modify <code>lib/models/fire_station_model.dart</code>:</p>
+        <ul>
+            <li>Add <code>FireStation.fromUSGS()</code> factory constructor</li>
+            <li>Map USGS fields to FireStation properties</li>
+            <li>Remove Google Places factory (direct switch)</li>
+        </ul>
+
+        <h4>Step 2.3: Update IncidentsProvider (1.5 hours)</h4>
+        <p>Modify <code>lib/providers/incidents_provider.dart</code>:</p>
+        <ul>
+            <li>Update <code>fetchFireStations()</code> to use USGS service</li>
+            <li>Add <code>forceRefresh</code> parameter</li>
+            <li>Add state tracking: <code>_fireStationSource</code></li>
+            <li>Add <code>forceRefreshFireStations()</code> method</li>
+            <li>Keep callback support for incremental loading</li>
+        </ul>
+
+        <h3>Phase 3: Map & UI Integration</h3>
+        <div class="timeline-item">
+            <strong>Estimated Time:</strong> 3-4 hours
+        </div>
+
+        <h4>Step 3.1: Verify Map Compatibility (30 minutes)</h4>
+        <ul>
+            <li>Test coordinate conversion accuracy</li>
+            <li>Log converted coordinates in console</li>
+            <li>Verify stations appear at correct Arizona locations</li>
+            <li>Visual inspection on map</li>
+            <li><strong>No code changes to map widget needed!</strong></li>
+        </ul>
+
+        <h4>Step 3.2: Add Loading States (1 hour)</h4>
+        <p>Update <code>lib/widgets/esri_map.dart</code>:</p>
+        <ul>
+            <li>Show overlay during initial USGS download</li>
+            <li>Display progress: "Downloading fire station data..."</li>
+            <li>Show station count as they load incrementally</li>
+            <li>Circular progress indicator</li>
+        </ul>
+
+        <h4>Step 3.3: Settings UI (1.5 hours)</h4>
+        <p>Add to settings screen:</p>
+        <ul>
+            <li><strong>Force Refresh Button</strong>
+                <ul>
+                    <li>"Refresh Fire Stations"</li>
+                    <li>Re-downloads latest USGS data</li>
+                    <li>Shows success/error message</li>
+                </ul>
+            </li>
+            <li><strong>Cache Info Display</strong>
+                <ul>
+                    <li>Last updated date</li>
+                    <li>Number of stations cached</li>
+                    <li>Data source: "USGS National Structures"</li>
+                </ul>
+            </li>
+            <li><strong>Clear Cache Option</strong>
+                <ul>
+                    <li>"Clear fire station cache and re-download"</li>
+                    <li>Confirmation dialog</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>Phase 4: Background Updates</h3>
+        <div class="timeline-item">
+            <strong>Estimated Time:</strong> 4-5 hours
+        </div>
+
+        <h4>Step 4.1: Add WorkManager (15 minutes)</h4>
+        <p>Already added in Phase 1 dependencies.</p>
+
+        <h4>Step 4.2: Implement Background Service (2 hours)</h4>
+        <p>Create <code>lib/services/background_update_service.dart</code>:</p>
+        <ul>
+            <li>Initialize WorkManager</li>
+            <li>Register periodic task (weekly frequency)</li>
+            <li>Background callback (runs in separate isolate):
+                <ol>
+                    <li>Check USGS for updates using LOADDATE</li>
+                    <li>If updates available: auto-download</li>
+                    <li>Save to Hive cache</li>
+                    <li>Log results</li>
+                </ol>
+            </li>
+            <li>Cancel/reschedule methods</li>
+        </ul>
+
+        <h4>Step 4.3: Initialize Background Updates (30 minutes)</h4>
+        <p>Update <code>lib/main.dart</code>:</p>
+        <ul>
+            <li>Call <code>BackgroundUpdateService.initialize()</code></li>
+            <li>Schedule weekly update check</li>
+        </ul>
+
+        <h4>Step 4.4: iOS Background Configuration (1 hour)</h4>
+        <p>Update <code>ios/Runner/Info.plist</code>:</p>
+        <div class="code-block">&lt;key&gt;UIBackgroundModes&lt;/key&gt;
+&lt;array&gt;
+    &lt;string&gt;fetch&lt;/string&gt;
+    &lt;string&gt;processing&lt;/string&gt;
+&lt;/array&gt;</div>
+
+        <h4>Step 4.5: Android Configuration (30 minutes)</h4>
+        <p>WorkManager permissions already configured in manifest. No changes needed.</p>
+
+        <h3>Phase 5: Testing & Polish</h3>
+        <div class="timeline-item">
+            <strong>Estimated Time:</strong> 6-8 hours
+        </div>
+
+        <h4>Test Cases</h4>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Test Case</th>
+                    <th>Expected Result</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>First launch with internet</td>
+                    <td>Downloads USGS data, shows loading progress</td>
+                    <td>☐ Pending</td>
+                </tr>
+                <tr>
+                    <td>First launch without internet</td>
+                    <td>Shows error message, retry button works</td>
+                    <td>☐ Pending</td>
+                </tr>
+                <tr>
+                    <td>Subsequent launches offline</td>
+                    <td>Loads from cache instantly (&lt;500ms)</td>
+                    <td>☐ Pending</td>
+                </tr>
+                <tr>
+                    <td>Force refresh</td>
+                    <td>Re-downloads latest data, updates cache</td>
+                    <td>☐ Pending</td>
+                </tr>
+                <tr>
+                    <td>Coordinate accuracy</td>
+                    <td>Stations appear at correct Arizona locations</td>
+                    <td>☐ Pending</td>
+                </tr>
+                <tr>
+                    <td>Both data types together</td>
+                    <td>Incidents and fire stations display simultaneously</td>
+                    <td>☐ Pending</td>
+                </tr>
+                <tr>
+                    <td>Toggle fire stations</td>
+                    <td>Shows/hides fire station markers smoothly</td>
+                    <td>☐ Pending</td>
+                </tr>
+                <tr>
+                    <td>Performance with 1000 markers</td>
+                    <td>Map renders smoothly, no frame drops</td>
+                    <td>☐ Pending</td>
+                </tr>
+                <tr>
+                    <td>Background updates</td>
+                    <td>Weekly check runs, auto-downloads if needed</td>
+                    <td>☐ Pending</td>
+                </tr>
+                <tr>
+                    <td>Storage usage</td>
+                    <td>Cache uses ~180-200 KB</td>
+                    <td>☐ Pending</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>4. Platform Compatibility</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Platform</th>
+                    <th>Mapbox</th>
+                    <th>Hive</th>
+                    <th>proj4dart</th>
+                    <th>WorkManager</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>iOS</strong></td>
+                    <td><span class="checkmark">✓</span></td>
+                    <td><span class="checkmark">✓</span></td>
+                    <td><span class="checkmark">✓</span></td>
+                    <td><span class="checkmark">✓</span> (iOS 13+)</td>
+                    <td><span class="badge-success">Fully Supported</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Android</strong></td>
+                    <td><span class="checkmark">✓</span></td>
+                    <td><span class="checkmark">✓</span></td>
+                    <td><span class="checkmark">✓</span></td>
+                    <td><span class="checkmark">✓</span> (API 21+)</td>
+                    <td><span class="badge-success">Fully Supported</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Web</strong></td>
+                    <td><span class="checkmark">✓</span></td>
+                    <td><span class="checkmark">✓</span> (IndexedDB)</td>
+                    <td><span class="checkmark">✓</span></td>
+                    <td><span class="crossmark">✗</span></td>
+                    <td><span class="badge-warning">Partial (no auto-updates)</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="warning-box">
+            <strong>Note:</strong> Web platform doesn't support WorkManager background updates. Use manual refresh only for web users.
+        </div>
+
+        <h2>5. Storage Requirements</h2>
+
+        <h3>Arizona State-wide (~1000 stations)</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    <th>Size</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>GeoJSON Download</td>
+                    <td>250-300 KB</td>
+                    <td>One-time download from USGS API</td>
+                </tr>
+                <tr>
+                    <td>Hive Storage (compressed)</td>
+                    <td>180-200 KB</td>
+                    <td>Binary format, efficient storage</td>
+                </tr>
+                <tr>
+                    <td>Hive SDK Overhead</td>
+                    <td>~50 KB</td>
+                    <td>One-time overhead for Hive library</td>
+                </tr>
+                <tr>
+                    <td>Metadata</td>
+                    <td>&lt;1 KB</td>
+                    <td>Cache timestamps, record count</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Storage</strong></td>
+                    <td><strong>~230-250 KB</strong></td>
+                    <td>Negligible (most apps use 50-500 MB)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Comparison to Current Implementation</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Current (Google Places)</th>
+                    <th>New (USGS Cached)</th>
+                    <th>Savings</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Initial Download</td>
+                    <td>50-100 KB per fetch</td>
+                    <td>250-300 KB (one-time)</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>Local Storage</td>
+                    <td>0 KB</td>
+                    <td>230-250 KB</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>Subsequent Loads</td>
+                    <td>50-100 KB each</td>
+                    <td>0 KB (from cache)</td>
+                    <td><span class="badge-success">100% saved</span></td>
+                </tr>
+                <tr>
+                    <td>30 days usage (30 opens)</td>
+                    <td>1.5-3 MB</td>
+                    <td>250 KB (one-time)</td>
+                    <td><span class="badge-success">83-92% saved</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>6. Timeline & Effort Estimate</h2>
+
+        <h3>Development Time Breakdown</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Phase</th>
+                    <th>Tasks</th>
+                    <th>Time</th>
+                    <th>Dependencies</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Phase 1</strong></td>
+                    <td>Storage & Download Infrastructure</td>
+                    <td>8-10 hours</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 2</strong></td>
+                    <td>Service Layer Migration</td>
+                    <td>4-6 hours</td>
+                    <td>Phase 1</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 3</strong></td>
+                    <td>Map & UI Integration</td>
+                    <td>3-4 hours</td>
+                    <td>Phase 2</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 4</strong></td>
+                    <td>Background Updates</td>
+                    <td>4-5 hours</td>
+                    <td>Phase 3</td>
+                </tr>
+                <tr>
+                    <td><strong>Phase 5</strong></td>
+                    <td>Testing & Polish</td>
+                    <td>6-8 hours</td>
+                    <td>Phase 4</td>
+                </tr>
+                <tr>
+                    <td colspan="2"><strong>Total Development Time</strong></td>
+                    <td><strong>27-36 hours</strong></td>
+                    <td>4-5 days full-time</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Release Timeline</h3>
+
+        <div class="timeline-item">
+            <strong>Week 1-2:</strong> Development (Phases 1-5)
+        </div>
+
+        <div class="timeline-item">
+            <strong>Week 3:</strong> Beta Testing
+            <ul>
+                <li>10-20 beta testers</li>
+                <li>Monitor crash reports (Firebase Crashlytics)</li>
+                <li>Collect feedback on data accuracy</li>
+                <li>Performance monitoring</li>
+            </ul>
+        </div>
+
+        <div class="timeline-item">
+            <strong>Week 4:</strong> Gradual Rollout
+            <ul>
+                <li>Day 1-2: Release to 10% of users</li>
+                <li>Day 3-5: Increase to 50% if stable</li>
+                <li>Day 6-7: Full rollout (100%)</li>
+            </ul>
+        </div>
+
+        <p><strong>Total Time to Full Release:</strong> <span class="badge-info">3-4 weeks</span> from start of development</p>
+
+        <h2>7. Cost Analysis</h2>
+
+        <h3>Current Implementation (Google Places)</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>API Provider</td>
+                    <td>Google Places API</td>
+                </tr>
+                <tr>
+                    <td>Cost per Request</td>
+                    <td>~$0.017 per text search</td>
+                </tr>
+                <tr>
+                    <td>Estimated Monthly Active Users</td>
+                    <td>1,000 users</td>
+                </tr>
+                <tr>
+                    <td>Average Opens per User per Month</td>
+                    <td>30 opens</td>
+                </tr>
+                <tr>
+                    <td>Total Monthly API Calls</td>
+                    <td>30,000 calls</td>
+                </tr>
+                <tr>
+                    <td><strong>Monthly Cost</strong></td>
+                    <td><strong>$500 - $1,000</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Annual Cost</strong></td>
+                    <td><strong style="color: #f44336;">$6,000 - $12,000</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>New Implementation (USGS)</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>API Provider</td>
+                    <td>USGS National Structures Dataset (Government)</td>
+                </tr>
+                <tr>
+                    <td>Cost per Request</td>
+                    <td><strong style="color: #4caf50;">$0 (Free, Public Domain)</strong></td>
+                </tr>
+                <tr>
+                    <td>API Calls</td>
+                    <td>One-time download + weekly update checks</td>
+                </tr>
+                <tr>
+                    <td><strong>Monthly Cost</strong></td>
+                    <td><strong style="color: #4caf50;">$0</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Annual Cost</strong></td>
+                    <td><strong style="color: #4caf50;">$0</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="cost-savings">
+            💰 Annual Savings: $6,000 - $12,000
+        </div>
+
+        <h3>Return on Investment (ROI)</h3>
+
+        <ul>
+            <li><strong>Development Cost:</strong> 27-36 hours × developer rate</li>
+            <li><strong>Annual Savings:</strong> $6,000 - $12,000</li>
+            <li><strong>Break-even:</strong> Likely within first month of production use</li>
+            <li><strong>5-year savings:</strong> $30,000 - $60,000</li>
+        </ul>
+
+        <h2>8. Risk Assessment & Mitigation</h2>
+
+        <h3>High Risk (Require Active Mitigation)</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Risk</th>
+                    <th>Impact</th>
+                    <th>Probability</th>
+                    <th>Mitigation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>USGS API Downtime</td>
+                    <td>Users can't download fire station data</td>
+                    <td>Low</td>
+                    <td>
+                        • Cache data locally (already planned)<br>
+                        • Retry logic with exponential backoff<br>
+                        • Error messages with manual retry option
+                    </td>
+                </tr>
+                <tr>
+                    <td>Coordinate Conversion Errors</td>
+                    <td>Fire stations appear at wrong locations</td>
+                    <td>Low</td>
+                    <td>
+                        • Extensive testing with known coordinates<br>
+                        • Visual inspection on map<br>
+                        • Unit tests for conversion accuracy<br>
+                        • Compare with Google Places locations
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Medium Risk (Monitor)</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Risk</th>
+                    <th>Impact</th>
+                    <th>Probability</th>
+                    <th>Mitigation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>USGS Data Staleness</td>
+                    <td>New fire stations not shown</td>
+                    <td>Medium</td>
+                    <td>
+                        • Weekly background update checks<br>
+                        • Manual refresh option in settings<br>
+                        • Display "Last updated" date to users<br>
+                        • USGS updates quarterly (acceptable for static infrastructure)
+                    </td>
+                </tr>
+                <tr>
+                    <td>Storage Limitations</td>
+                    <td>Cache fails on low-storage devices</td>
+                    <td>Low</td>
+                    <td>
+                        • Data is only ~200 KB (negligible)<br>
+                        • Monitor storage usage<br>
+                        • Error handling for storage failures
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Low Risk (Accept)</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Risk</th>
+                    <th>Impact</th>
+                    <th>Probability</th>
+                    <th>Mitigation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Background Updates Fail</td>
+                    <td>Users need to manually refresh</td>
+                    <td>Medium</td>
+                    <td>
+                        • Provide manual refresh button<br>
+                        • Cache-first approach ensures data always available<br>
+                        • Acceptable fallback for users
+                    </td>
+                </tr>
+                <tr>
+                    <td>iOS Background Task Limitations</td>
+                    <td>Background updates don't run reliably</td>
+                    <td>Medium</td>
+                    <td>
+                        • Make background updates optional/supplementary<br>
+                        • Rely primarily on cache-first approach<br>
+                        • iOS restrictions are known limitation
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>9. Success Metrics (KPIs)</h2>
+
+        <h3>Technical Metrics</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Target</th>
+                    <th>Measurement Method</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Initial download time</td>
+                    <td>&lt; 5 seconds</td>
+                    <td>Performance monitoring, Firebase Analytics</td>
+                </tr>
+                <tr>
+                    <td>Cache load time</td>
+                    <td>&lt; 500ms</td>
+                    <td>Performance monitoring</td>
+                </tr>
+                <tr>
+                    <td>Storage footprint</td>
+                    <td>&lt; 250 KB</td>
+                    <td>Hive database size check</td>
+                </tr>
+                <tr>
+                    <td>Network bandwidth savings</td>
+                    <td>&gt; 90% vs Google Places</td>
+                    <td>Network usage analytics</td>
+                </tr>
+                <tr>
+                    <td>Background update success rate</td>
+                    <td>&gt; 95%</td>
+                    <td>WorkManager logs, Firebase Analytics</td>
+                </tr>
+                <tr>
+                    <td>Crash rate</td>
+                    <td>&lt; 0.1% (no increase from baseline)</td>
+                    <td>Firebase Crashlytics</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>User Experience Metrics</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Target</th>
+                    <th>Measurement Method</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Fire station data accuracy</td>
+                    <td>100% (verified against official sources)</td>
+                    <td>Manual verification, user feedback</td>
+                </tr>
+                <tr>
+                    <td>Offline availability</td>
+                    <td>100% after first download</td>
+                    <td>Test with airplane mode</td>
+                </tr>
+                <tr>
+                    <td>User complaints about fire station locations</td>
+                    <td>0 (target)</td>
+                    <td>Support tickets, app reviews</td>
+                </tr>
+                <tr>
+                    <td>User retention</td>
+                    <td>No negative impact</td>
+                    <td>Firebase Analytics</td>
+                </tr>
+                <tr>
+                    <td>App ratings</td>
+                    <td>No decrease</td>
+                    <td>App Store / Play Store ratings</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>10. Dependencies & Libraries</h2>
+
+        <h3>New Dependencies</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Package</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                    <th>Size</th>
+                    <th>Platform Support</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>hive</strong></td>
+                    <td>^2.2.3</td>
+                    <td>NoSQL local database for caching</td>
+                    <td>~50 KB</td>
+                    <td>iOS, Android, Web</td>
+                </tr>
+                <tr>
+                    <td><strong>hive_flutter</strong></td>
+                    <td>^1.1.0</td>
+                    <td>Flutter integration for Hive</td>
+                    <td>~20 KB</td>
+                    <td>iOS, Android, Web</td>
+                </tr>
+                <tr>
+                    <td><strong>proj4dart</strong></td>
+                    <td>^2.1.0</td>
+                    <td>Coordinate system conversion (Web Mercator → WGS84)</td>
+                    <td>~100 KB</td>
+                    <td>iOS, Android, Web</td>
+                </tr>
+                <tr>
+                    <td><strong>workmanager</strong></td>
+                    <td>^0.5.2</td>
+                    <td>Background updates (weekly checks)</td>
+                    <td>~50 KB</td>
+                    <td>iOS (13+), Android (21+)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><strong>Total Added Size:</strong> ~170-220 KB</p>
+
+        <h3>Existing Dependencies (No Changes)</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Package</th>
+                    <th>Version</th>
+                    <th>Usage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>mapbox_maps_flutter</td>
+                    <td>^2.8.0</td>
+                    <td>Map display (already compatible)</td>
+                </tr>
+                <tr>
+                    <td>dio</td>
+                    <td>^5.4.1</td>
+                    <td>HTTP client for USGS API</td>
+                </tr>
+                <tr>
+                    <td>firebase_database</td>
+                    <td>^11.3.6</td>
+                    <td>Incidents caching (keep existing)</td>
+                </tr>
+                <tr>
+                    <td>shared_preferences</td>
+                    <td>^2.2.2</td>
+                    <td>User preferences</td>
+                </tr>
+                <tr>
+                    <td>latlong2</td>
+                    <td>^0.9.1</td>
+                    <td>LatLng coordinate model</td>
+                </tr>
+                <tr>
+                    <td>provider</td>
+                    <td>^6.1.2</td>
+                    <td>State management</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>11. Implementation Configuration</h2>
+
+        <div class="highlight-box">
+            <h3>Selected Configuration</h3>
+            <ul>
+                <li><strong>Scope:</strong> <span class="badge-info">Full Implementation (with background updates)</span></li>
+                <li><strong>Migration Strategy:</strong> <span class="badge-info">Direct Switch (USGS only)</span></li>
+                <li><strong>Geographic Coverage:</strong> <span class="badge-info">Arizona State-wide (~1000 stations)</span></li>
+                <li><strong>Development Time:</strong> 27-36 hours</li>
+                <li><strong>Storage Required:</strong> ~230-250 KB</li>
+                <li><strong>Annual Savings:</strong> $6,000 - $12,000</li>
+            </ul>
+        </div>
+
+        <h2>12. Final Recommendations</h2>
+
+        <h3>Proceed with Implementation ✓</h3>
+
+        <div class="highlight-box">
+            <h4>Reasons to Proceed:</h4>
+            <ul>
+                <li><strong>Significant Cost Savings:</strong> $6,000-$12,000/year eliminated</li>
+                <li><strong>Better User Experience:</strong> Offline support, faster loading</li>
+                <li><strong>Future-Proof:</strong> State-wide coverage enables expansion</li>
+                <li><strong>Low Risk:</strong> Existing Mapbox infrastructure works as-is</li>
+                <li><strong>Proven Technologies:</strong> Hive, proj4dart, WorkManager are battle-tested</li>
+                <li><strong>Government Data:</strong> Official, reliable, permanent</li>
+            </ul>
+        </div>
+
+        <h3>Implementation Priority</h3>
+
+        <ol>
+            <li><strong>Week 1-2:</strong> Build core functionality (Phases 1-4)
+                <ul>
+                    <li>Focus on cache-first loading</li>
+                    <li>Ensure coordinate conversion accuracy</li>
+                    <li>Implement background updates</li>
+                </ul>
+            </li>
+            <li><strong>Week 3:</strong> Beta testing
+                <ul>
+                    <li>10-20 internal/beta testers</li>
+                    <li>Monitor crashes and performance</li>
+                    <li>Verify data accuracy</li>
+                </ul>
+            </li>
+            <li><strong>Week 4:</strong> Gradual production rollout
+                <ul>
+                    <li>10% → 50% → 100%</li>
+                    <li>Monitor metrics closely</li>
+                    <li>Be ready to rollback if needed</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Long-term Benefits</h3>
+
+        <ul>
+            <li><strong>6 months:</strong> Monitor data quality, consider expansion to other cities</li>
+            <li><strong>1 year:</strong> Evaluate adding other USGS structure types (hospitals, schools)</li>
+            <li><strong>2+ years:</strong> Full offline capability with cached map tiles</li>
+        </ul>
+
+        <h2>13. Rollback Plan (Just in Case)</h2>
+
+        <p>If USGS integration encounters issues after release:</p>
+
+        <h3>Emergency Rollback Steps</h3>
+
+        <ol>
+            <li><strong>Immediate Action (< 1 hour):</strong>
+                <ul>
+                    <li>Revert to previous app version in App Store / Play Store</li>
+                    <li>Disable USGS feature via Firebase Remote Config (if implemented)</li>
+                </ul>
+            </li>
+            <li><strong>Hot Fix (< 1 day):</strong>
+                <ul>
+                    <li>Add Google Places back as fallback</li>
+                    <li>Force all users to Google Places temporarily</li>
+                    <li>Release emergency patch</li>
+                </ul>
+            </li>
+            <li><strong>Investigation (1-3 days):</strong>
+                <ul>
+                    <li>Analyze crash reports</li>
+                    <li>Identify root cause</li>
+                    <li>Fix issues</li>
+                </ul>
+            </li>
+            <li><strong>Re-release (1 week):</strong>
+                <ul>
+                    <li>Fix USGS implementation</li>
+                    <li>Re-test thoroughly</li>
+                    <li>Gradual rollout again</li>
+                </ul>
+            </li>
+        </ol>
+
+        <p><strong>Risk Level:</strong> <span class="badge-success">Low</span> - Cache-first approach means data is always available, even if API fails.</p>
+
+        <h2>14. Appendix: USGS API Details</h2>
+
+        <h3>API Endpoint</h3>
+        <div class="code-block">https://carto.nationalmap.gov/arcgis/rest/services/structures/mapserver/16/query</div>
+
+        <h3>Key Parameters</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>f</code></td>
+                    <td>geojson</td>
+                    <td>Output format (GeoJSON recommended)</td>
+                </tr>
+                <tr>
+                    <td><code>where</code></td>
+                    <td>STATE = 'AZ'</td>
+                    <td>SQL WHERE clause for filtering</td>
+                </tr>
+                <tr>
+                    <td><code>outFields</code></td>
+                    <td>*</td>
+                    <td>Return all fields</td>
+                </tr>
+                <tr>
+                    <td><code>returnGeometry</code></td>
+                    <td>true</td>
+                    <td>Include coordinate data</td>
+                </tr>
+                <tr>
+                    <td><code>resultRecordCount</code></td>
+                    <td>2000</td>
+                    <td>Max records per request (pagination if needed)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Response Fields</h3>
+        <ul>
+            <li><strong>NAME:</strong> Station name</li>
+            <li><strong>ADDRESS:</strong> Street address</li>
+            <li><strong>CITY:</strong> City name</li>
+            <li><strong>STATE:</strong> State abbreviation (AZ)</li>
+            <li><strong>ZIPCODE:</strong> ZIP code</li>
+            <li><strong>LOADDATE:</strong> Last update timestamp (Unix milliseconds)</li>
+            <li><strong>ADMINTYPE:</strong> Federal/Tribal/State/County/Municipal/Private/Unknown</li>
+            <li><strong>geometry:</strong> Point coordinates (Web Mercator EPSG:102100)</li>
+        </ul>
+
+        <hr style="margin: 40px 0; border: none; border-top: 2px solid #ddd;">
+
+        <div style="text-align: center; color: #999; padding: 20px 0;">
+            <p><strong>Document Status:</strong> Final Implementation Plan</p>
+            <p>Created: December 10, 2025</p>
+            <p>Project: AZ Incident Alert App - USGS Fire Station Integration</p>
+            <p>Status: <span class="badge-warning">Not Implemented (Future Consideration)</span></p>
+        </div>
+    </div>
+</body>
+</html>
