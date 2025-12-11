@@ -17,6 +17,12 @@ import 'package:latlong2/latlong.dart';
 
 enum MapThemeType { light, dark, satellite }
 
+enum FireStationDisplayMode {
+  off,          // No fire stations displayed
+  allRegional,  // All regional dispatch stations (152)
+  phoenixOnly,  // Phoenix Fire Department only (61)
+}
+
 class IncidentsProvider extends ChangeNotifier {
   final BaseIncidentService services;
 
@@ -48,6 +54,7 @@ class IncidentsProvider extends ChangeNotifier {
   List<FireStation> _fireStations = [];
   bool _showFireStations = false;
   bool _isLoadingFireStations = false;
+  FireStationDisplayMode _fireStationMode = FireStationDisplayMode.off;
 
   MapThemeType get mapThemeType => _mapThemeType;
 
@@ -75,8 +82,9 @@ class IncidentsProvider extends ChangeNotifier {
 
   // Fire Station getters
   List<FireStation> get fireStations => _fireStations;
-  bool get showFireStations => _showFireStations;
+  bool get showFireStations => _fireStationMode != FireStationDisplayMode.off;
   bool get isLoadingFireStations => _isLoadingFireStations;
+  FireStationDisplayMode get fireStationMode => _fireStationMode;
 
   /// Methods ///
 
@@ -542,26 +550,82 @@ class IncidentsProvider extends ChangeNotifier {
 
   /// Fire Station Methods ///
 
-  /// Toggle fire stations visibility
+  /// Cycle to next fire station display mode (single tap)
   Future<void> toggleFireStations() async {
-    if (!_showFireStations && _fireStations.isEmpty) {
-      await fetchFireStations();
+    // Prevent double calls while loading
+    if (_isLoadingFireStations) return;
+
+    switch (_fireStationMode) {
+      case FireStationDisplayMode.off:
+        // OFF → ALL_REGIONAL
+        await _setFireStationMode(FireStationDisplayMode.allRegional);
+        break;
+      case FireStationDisplayMode.allRegional:
+        // ALL_REGIONAL → OFF
+        await _setFireStationMode(FireStationDisplayMode.off);
+        break;
+      case FireStationDisplayMode.phoenixOnly:
+        // PHOENIX_ONLY → OFF
+        await _setFireStationMode(FireStationDisplayMode.off);
+        break;
     }
-    _showFireStations = !_showFireStations;
+  }
+
+  /// Switch to Phoenix-only mode (double tap)
+  Future<void> switchToPhoenixOnly() async {
+    // Prevent double calls while loading
+    if (_isLoadingFireStations) return;
+
+    // Only works when in ALL_REGIONAL mode
+    if (_fireStationMode == FireStationDisplayMode.allRegional) {
+      await _setFireStationMode(FireStationDisplayMode.phoenixOnly);
+    }
+  }
+
+  /// Internal method to set mode and fetch appropriate data
+  Future<void> _setFireStationMode(FireStationDisplayMode newMode) async {
+    if (newMode == FireStationDisplayMode.off) {
+      _fireStationMode = newMode;
+      _fireStations = [];
+      notifyListeners();
+      return;
+    }
+
+    // Fetch stations based on mode
+    final filter = newMode == FireStationDisplayMode.allRegional
+        ? FireStationFilter.allRegional
+        : FireStationFilter.phoenixOnly;
+
+    await fetchFireStations(filter: filter);
+    _fireStationMode = newMode;
     notifyListeners();
   }
 
-  /// Fetch fire stations from Overpass API
-  Future<void> fetchFireStations() async {
+  /// Fetch fire stations from Phoenix Fire FeatureServer
+  /// Stations are added incrementally as each page is fetched
+  Future<void> fetchFireStations({
+    FireStationFilter filter = FireStationFilter.phoenixOnly,
+  }) async {
     if (_isLoadingFireStations) return;
 
     try {
       _isLoadingFireStations = true;
+      _fireStations = []; // Clear existing stations
       notifyListeners();
 
-      final stations = await FireStationService.instance.getFireStations();
-      _fireStations = stations;
+      // Fetch with callback to add markers incrementally
+      final stations = await FireStationService.instance.getFireStations(
+        filter: filter,
+        onPageFetched: (pageStations) {
+          // Add new stations and notify listeners to update UI
+          _fireStations.addAll(pageStations);
+          log('[IncidentsProvider] Added ${pageStations.length} stations, total: ${_fireStations.length}');
+          notifyListeners();
+        },
+      );
 
+      // Final update with all stations
+      _fireStations = stations;
       _isLoadingFireStations = false;
       notifyListeners();
     } catch (e, stackTrace) {

@@ -30,6 +30,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   bool _isLoading = true;
   bool _isPurchasing = false;
+  int? _purchasingIndex; // Track which plan is being purchased
   Package? _monthlyPackage;
   Package? _yearlyPackage;
 
@@ -93,25 +94,26 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     });
   }
 
-  Future<void> _handlePurchase() async {
-    log('[SubscriptionScreen] 🚀 _handlePurchase called');
+  Future<void> _handlePurchase(int planIndex) async {
+    log('[SubscriptionScreen] 🚀 _handlePurchase called for index $planIndex');
 
     if (_isPurchasing) {
       log('[SubscriptionScreen] ⚠️ Already purchasing, returning');
       return;
     }
 
-    setState(() => _isPurchasing = true);
+    setState(() {
+      _isPurchasing = true;
+      _purchasingIndex = planIndex;
+    });
     log('[SubscriptionScreen] 📝 Set _isPurchasing = true');
 
     try {
-      // Get selected plan
-      final selectedPlanIndex = plans.indexWhere((plan) => plan.isSelected);
-      log('[SubscriptionScreen] 📊 Selected plan index: $selectedPlanIndex');
+      log('[SubscriptionScreen] 📊 Selected plan index: $planIndex');
 
       Package? selectedPackage;
 
-      if (selectedPlanIndex == 0) {
+      if (planIndex == 0) {
         // Yearly
         selectedPackage = _yearlyPackage;
         log('[SubscriptionScreen] 📦 Selected yearly package: ${_yearlyPackage?.identifier}');
@@ -174,7 +176,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     } finally {
       log('[SubscriptionScreen] 🏁 Finally block - mounted: $mounted');
       if (mounted) {
-        setState(() => _isPurchasing = false);
+        setState(() {
+          _isPurchasing = false;
+          _purchasingIndex = null;
+        });
         log('[SubscriptionScreen] 📝 Set _isPurchasing = false');
       }
     }
@@ -224,9 +229,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       child: AppScaffold(
+        appbarBG: isDark ? Colors.black : Colors.white,
         body: SafeArea(
         child: _isLoading
             ? Center(
@@ -253,64 +261,58 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           style: textStyle16SemiBold.copyWith(fontSize: 12.sp),
                         ),
                         24.verticalSpace,
-                        Container(
-                          width: 120.h,
-                          height: 120.h,
-                          decoration: BoxDecoration(
-                            color: AppColors.dPrimary,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.card_giftcard,
-                              size: 45.w,
-                              color: AppColors.white,
-                            ),
-                          ),
-                        ),
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 30.h),
+                          padding: EdgeInsets.symmetric(vertical: 20.h),
                           child: Column(
                             children: List.generate(plans.length, (index) {
                               return Padding(
                                 padding: EdgeInsets.only(bottom: 16.h),
                                 child: SubscriptionPlanCard(
                                   plan: plans[index],
-                                  onTap: () => selectPlan(index),
+                                  isRecommended: index == 0, // Yearly is recommended
+                                  isPurchasing: _isPurchasing && _purchasingIndex == index,
+                                  onTap: () {
+                                    // TODO: Re-enable purchase logic when needed
+                                    // _handlePurchase(index);
+
+                                    // Temporary: Navigate directly to tabs screen
+                                    context.goNamed(AppRoute.tabs.name);
+                                  },
                                 ),
                               );
                             }),
                           ),
                         ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: AppButton(
-                            backgroundColor: AppColors.dPrimary,
-                            onPressed: () {
-                              // TODO: Re-enable purchase logic when needed
-                              // _handlePurchase();
-
-                              // Temporary: Navigate directly to tabs screen
-                              context.goNamed(AppRoute.tabs.name);
-                            },
-                            text: 'Start 3 day free trial',
+                        24.verticalSpace,
+                        OutlinedButton(
+                          onPressed: _isPurchasing ? null : _handleRestorePurchases,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: isDark ? Colors.white : Colors.black,
+                            side: BorderSide(
+                              color: isDark ? Colors.white : Colors.black,
+                              width: 1.5,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        ),
-                        30.verticalSpace,
-                        Text(
-                          'By placing this order, you agree to the Terms of Services, Privacy Policy. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period.',
-                          textAlign: TextAlign.center,
-                          style: textStyle12,
-                        ),
-                        16.verticalSpace,
-                        TextButton(
-                          onPressed: _handleRestorePurchases,
                           child: Text(
                             'Restore Purchases',
                             style: textStyle14Bold.copyWith(
-                              color: AppColors.dPrimary,
-                              decoration: TextDecoration.underline,
+                              color: isDark ? Colors.white : Colors.black,
+                              fontSize: 15,
                             ),
+                          ),
+                        ),
+                        20.verticalSpace,
+                        Text(
+                          'By placing this order, you agree to the Terms of Services and Privacy Policy. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period.',
+                          textAlign: TextAlign.center,
+                          style: textStyle12.copyWith(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
                           ),
                         ),
                       ],

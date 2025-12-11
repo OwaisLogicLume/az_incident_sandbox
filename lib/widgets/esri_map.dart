@@ -36,14 +36,18 @@ class _MapBoxWidgetState extends State<MapBoxWidget> {
     return Consumer<IncidentsProvider>(
       builder: (context, provider, _) {
          final styleUri = _getStyleUri(provider);
-         print('[MapWidget] Building map with styleUri: $styleUri');
 
-         // Update fire station markers when showFireStations changes
+         // Update fire station markers when showFireStations or fireStations list changes
          WidgetsBinding.instance.addPostFrameCallback((_) {
-           if (provider.showFireStations && _fireStationAnnotationManager != null) {
-             _addFireStationMarkers();
-           } else if (!provider.showFireStations && _fireStationAnnotationManager != null) {
-             _removeFireStationMarkers();
+           if (_fireStationAnnotationManager != null) {
+             if (provider.showFireStations && provider.fireStations.isNotEmpty) {
+               // Remove existing markers first, then add new ones
+               _removeFireStationMarkers().then((_) {
+                 _addFireStationMarkers();
+               });
+             } else if (!provider.showFireStations) {
+               _removeFireStationMarkers();
+             }
            }
          });
 
@@ -75,21 +79,13 @@ class _MapBoxWidgetState extends State<MapBoxWidget> {
     );
   }
 String _getStyleUri(IncidentsProvider provider) {
-  print('[MapWidget] Getting style URI for mapType: ${provider.mapType}');
   if (provider.mapType == KDayMapType) {
-    // Note: This Mapbox style ID is actually a light/day style despite the ID
-    print('[MapWidget] Returning DAY style URI: cmb4lpzb800l101sda1ewfx4g');
     return "mapbox://styles/azincidentalert/cmb4lpzb800l101sda1ewfx4g";
   } else if (provider.mapType == KNightMapType) {
-    // Note: This Mapbox style ID is actually a dark/night style despite the ID
-    print('[MapWidget] Returning NIGHT style URI: cmb4ptheg00ji01qxch9ghb8c');
     return 'mapbox://styles/azincidentalert/cmb4ptheg00ji01qxch9ghb8c';
-
   } else if (provider.mapType == kSatelliteMapType) {
-    print('[MapWidget] Returning SATELLITE style URI');
     return MapboxStyles.SATELLITE_STREETS;
   } else {
-    print('[MapWidget] Returning default STREETS style URI');
     return MapboxStyles.MAPBOX_STREETS;
   }
 }
@@ -308,6 +304,35 @@ final scaleFactor = 30 / mbxImage.width;
           log('Error adding fire station marker for ${station.name}: $e');
         }
       }
+
+      // Add click listener for fire station markers
+      _fireStationAnnotationManager!.addOnPointAnnotationClickListener(
+        PointAnnotationClickListener(
+          onClickCallback: (annotation) async {
+            log('Fire station marker tapped with ID: ${annotation.id}');
+            final station = _annotationFireStationMap[annotation.id];
+            if (station != null && _mapboxMap != null) {
+              log('Moving camera to fire station: ${station.name} at (${station.lat}, ${station.lng})');
+              await _mapboxMap!.setCamera(
+                CameraOptions(
+                  center: Point(
+                    coordinates: Position(
+                      station.lng,
+                      station.lat,
+                    ),
+                  ),
+                  zoom: 14.0,
+                ),
+              );
+              _showFireStationInfo(station);
+              log('Showing fire station info sheet for ${station.name}');
+            } else {
+              log('No fire station found for ID: ${annotation.id} or MapboxMap is null');
+            }
+            return true;
+          },
+        ),
+      );
     } catch (e, stackTrace) {
       log('Error adding fire station markers: $e');
       log('Stack trace: $stackTrace');
@@ -328,9 +353,28 @@ final scaleFactor = 30 / mbxImage.width;
 
   /// Show fire station information
   void _showFireStationInfo(FireStation station) {
+    // Extract station number from STATION field or name
+    String? stationNumber;
+
+    // First try to get it from the id field (Phoenix Fire uses STATION field like "ST01")
+    if (station.id.startsWith('ST') || station.id.startsWith('st')) {
+      stationNumber = station.id.substring(2); // Remove "ST" prefix
+    } else if (RegExp(r'^\d+$').hasMatch(station.id)) {
+      // If id is just numbers, use it directly
+      stationNumber = station.id;
+    } else {
+      // Fallback: Extract from name (e.g., "Phoenix Fire Department Station 13" -> "13")
+      final numberMatch = RegExp(r'Station\s+#?(\d+)', caseSensitive: false).firstMatch(station.name);
+      if (numberMatch != null) {
+        stationNumber = numberMatch.group(1);
+      }
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? Colors.grey[850] : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -344,12 +388,31 @@ final scaleFactor = 30 / mbxImage.width;
               children: [
                 const Icon(Icons.local_fire_department, color: Colors.red, size: 32),
                 const SizedBox(width: 12),
+                if (stationNumber != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Station #$stationNumber',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
                 Expanded(
                   child: Text(
                     station.name,
-                    style: const TextStyle(
-                      fontSize: 20,
+                    style: TextStyle(
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black,
                     ),
                   ),
                 ),
@@ -360,12 +423,15 @@ final scaleFactor = 30 / mbxImage.width;
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.location_on, size: 20, color: Colors.grey),
+                  Icon(Icons.location_on, size: 20, color: isDark ? Colors.grey[400] : Colors.grey),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       station.address!,
-                      style: const TextStyle(fontSize: 16),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDark ? Colors.grey[300] : Colors.black87,
+                      ),
                     ),
                   ),
                 ],
@@ -374,11 +440,14 @@ final scaleFactor = 30 / mbxImage.width;
             ],
             Row(
               children: [
-                const Icon(Icons.map, size: 20, color: Colors.grey),
+                Icon(Icons.map, size: 20, color: isDark ? Colors.grey[400] : Colors.grey),
                 const SizedBox(width: 8),
                 Text(
                   '${station.lat.toStringAsFixed(6)}, ${station.lng.toStringAsFixed(6)}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.grey[400] : Colors.grey,
+                  ),
                 ),
               ],
             ),
