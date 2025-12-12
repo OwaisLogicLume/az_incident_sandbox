@@ -74,7 +74,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
       // Navigate to appropriate screen
       if (mounted) {
-        if (hasAccess) {
+        // Check if user has accepted terms
+        final hasAcceptedTerms = SharedPrefs.instance.hasAcceptedTerms;
+
+        if (!hasAcceptedTerms) {
+          log('[SplashScreen] 📋 Navigating to terms acceptance screen');
+          context.goNamed(AppRoute.termsAcceptanceScreen.name);
+        } else if (hasAccess) {
           log('[SplashScreen] ✅ Navigating to tabs');
           context.goNamed(AppRoute.tabs.name);
         } else {
@@ -86,10 +92,16 @@ class _SplashScreenState extends State<SplashScreen> {
       log('[SplashScreen] ❌ Initialization error: $e');
       log('[SplashScreen] Stack trace: $stackTrace');
 
-      // On error, go to subscription screen to be safe
+      // On error, check terms first, then go to subscription screen
       if (mounted) {
         await Future.delayed(const Duration(milliseconds: 200));
-        context.goNamed(AppRoute.subscriptionScreen.name);
+
+        final hasAcceptedTerms = SharedPrefs.instance.hasAcceptedTerms;
+        if (!hasAcceptedTerms) {
+          context.goNamed(AppRoute.termsAcceptanceScreen.name);
+        } else {
+          context.goNamed(AppRoute.subscriptionScreen.name);
+        }
       }
     }
   }

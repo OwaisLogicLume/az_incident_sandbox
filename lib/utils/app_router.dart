@@ -4,6 +4,7 @@ import 'package:az_incident_alert/screens/map_screen.dart';
 import 'package:az_incident_alert/screens/splash.dart';
 import 'package:az_incident_alert/screens/subscription_screen.dart';
 import 'package:az_incident_alert/screens/tabs.dart';
+import 'package:az_incident_alert/screens/terms_acceptance_screen.dart';
 import 'package:az_incident_alert/widgets/internet_connectivity_wrapper.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,11 @@ class AppNavigator {
         path: AppRoute.splashScreen.path,
         name: AppRoute.splashScreen.name,
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.termsAcceptanceScreen.path,
+        name: AppRoute.termsAcceptanceScreen.name,
+        builder: (context, state) => const TermsAcceptanceScreen(),
       ),
       GoRoute(
         path: AppRoute.tabs.path,
@@ -131,6 +137,7 @@ extension PathName on AppRoute {
 enum AppRoute {
   subscriptionScreen,
   splashScreen,
+  termsAcceptanceScreen,
   tabs,
   home,
   alertScreen,

@@ -1,6 +1,7 @@
 import 'package:az_incident_alert/models/incident_model.dart';
 import 'package:az_incident_alert/screens/subscription_screen.dart';
 import 'package:az_incident_alert/utils/app_colors.dart';
+import 'package:az_incident_alert/utils/extensions/context_ext.dart';
 import 'package:az_incident_alert/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -46,6 +47,10 @@ class SubscriptionPlanCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark ? Colors.grey[850] : Colors.white,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: context.appColors.primaryColor.withOpacity(0.3),
+                  width: 1.5,
+                ),
               ),
               padding: EdgeInsets.fromLTRB(24, isRecommended ? 40 : 24, 24, 24),
               child: Column(
@@ -83,10 +88,10 @@ class SubscriptionPlanCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: context.appColors.secondaryColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: Colors.green.withOpacity(0.3),
+                          color: context.appColors.secondaryColor.withOpacity(0.4),
                           width: 1,
                         ),
                       ),
@@ -95,14 +100,14 @@ class SubscriptionPlanCard extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.verified,
-                            color: Colors.green,
+                            color: context.appColors.secondaryColor,
                             size: 16,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             plan.subtitle!,
                             style: textStyle12.copyWith(
-                              color: Colors.green,
+                              color: context.appColors.secondaryColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -118,7 +123,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.dPrimary,
+                          color: context.appColors.primaryColor,
                         ),
                       ),
                     ),
@@ -136,7 +141,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.dPrimary,
+                    color: context.appColors.primaryColor,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),

@@ -46,6 +46,7 @@ dependencies:
   firebase_crashlytics: ^4.3.10
   firebase_analytics:
   flutter_svg: ^1.1.6
+  webview_flutter: ^4.0.0
 
 
 dev_dependencies:
@@ -63,6 +64,7 @@ flutter:
     - assets/images/svg/
     - assets/images/png/
     - assets/icon/
+    - assets/documents/
     - env
 
     

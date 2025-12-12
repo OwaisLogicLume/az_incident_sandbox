@@ -21,6 +21,8 @@ class SharedPrefs {
   final String _isAdminModeKey = 'isAdminMode';
   final String _mapTypeKey = 'mapType';
   final String _hasUserSelectedMapTypeKey = 'hasUserSelectedMapType';
+  final String _themeIndexKey = 'appThemeIndex';
+  final String _hasAcceptedTermsKey = 'has_accepted_terms';
 
   init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -173,5 +175,21 @@ class SharedPrefs {
     await _prefs.remove(_mapTypeKey);
     await _prefs.remove(_hasUserSelectedMapTypeKey);
     log('Map type preference cleared - will follow system theme');
+  }
+
+  /// App Theme Index
+  int? getThemeIndex() => _prefs.getInt(_themeIndexKey);
+
+  Future<void> setThemeIndex(int index) async {
+    await _prefs.setInt(_themeIndexKey, index);
+    log('Theme index saved: $index');
+  }
+
+  /// Terms and Conditions Acceptance
+  bool get hasAcceptedTerms => _prefs.getBool(_hasAcceptedTermsKey) ?? false;
+
+  Future<void> setTermsAccepted(bool value) async {
+    await _prefs.setBool(_hasAcceptedTermsKey, value);
+    log('Terms accepted: $value');
   }
 }

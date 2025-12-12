@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:az_incident_alert/providers/incidents_provider.dart';
 import 'package:az_incident_alert/utils/app_colors.dart';
+import 'package:az_incident_alert/utils/extensions/context_ext.dart';
 
 class FireStationToggle extends StatefulWidget {
   const FireStationToggle({super.key});
@@ -68,7 +69,7 @@ class _FireStationToggleState extends State<FireStationToggle> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isActive
-                    ? AppColors.dPrimary.withOpacity(0.9)
+                    ? context.appColors.primaryColor.withOpacity(0.9)
                     : Colors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
@@ -90,7 +91,7 @@ class _FireStationToggleState extends State<FireStationToggle> {
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          isActive ? Colors.white : AppColors.dPrimary,
+                          isActive ? Colors.white : context.appColors.primaryColor,
                         ),
                       ),
                     ),
@@ -102,7 +103,7 @@ class _FireStationToggleState extends State<FireStationToggle> {
                       children: [
                         Icon(
                           Icons.local_fire_department,
-                          color: isActive ? Colors.white : AppColors.dPrimary,
+                          color: isActive ? Colors.white : context.appColors.primaryColor,
                           size: 24,
                         ),
                         // Badge showing mode

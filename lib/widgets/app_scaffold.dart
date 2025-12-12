@@ -9,6 +9,7 @@ class AppScaffold extends StatelessWidget {
     super.key,
     required this.body,
     this.appbarTitle,
+    this.appbarTitleWidget,
     this.appbarActions = const <Widget>[],
     this.appbarBG,
     this.pinned,
@@ -22,6 +23,7 @@ class AppScaffold extends StatelessWidget {
   final List<Widget> appbarActions;
   final Widget body;
   final String? appbarTitle;
+  final Widget? appbarTitleWidget;
   final TextStyle? titleStyle;
   final Color? appbarBG;
   final bool? pinned;
@@ -35,9 +37,9 @@ class AppScaffold extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: appbarTitle != null
+      appBar: (appbarTitle != null || appbarTitleWidget != null)
           ? AppBar(
-              title: Text(
+              title: appbarTitleWidget ?? Text(
                 appbarTitle ?? 'Title',
                 style: (titleStyle ?? textStyle22Bold).copyWith(
                   color: isDark ? Colors.white : Colors.black,

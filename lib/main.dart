@@ -6,6 +6,7 @@ import 'package:az_incident_alert/firebase_options.dart';
 import 'package:az_incident_alert/providers/app_provider.dart';
 import 'package:az_incident_alert/providers/incidents_provider.dart';
 import 'package:az_incident_alert/providers/subscription_provider.dart';
+import 'package:az_incident_alert/providers/theme_provider.dart';
 import 'package:az_incident_alert/services/base_api_service.dart';
 import 'package:az_incident_alert/services/firabse_service.dart';
 import 'package:az_incident_alert/services/incident_service.dart';
@@ -97,6 +98,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<SubscriptionProvider>(
           create: (_) => SubscriptionProvider(),
         ),
+        ChangeNotifierProvider<ThemeProvider>(
+          create: (_) => ThemeProvider()..loadTheme(),
+        ),
       ],
       child: buildMyapp(analytics),
     );
@@ -106,12 +110,13 @@ class MyApp extends StatelessWidget {
         ensureScreenSize: true,
         designSize: const ui.Size(390, 844),
         builder: (context, child) =>
-            Consumer<AppProvider>(builder: (context, provider, _) {
+            Consumer2<AppProvider, ThemeProvider>(
+                builder: (context, appProvider, themeProvider, _) {
           return MaterialApp.router(
             title: 'Incidence App',
             themeMode: ThemeMode.system,
-            theme: AppThemes.lightTheme,
-            darkTheme: AppThemes.darkTheme,
+            theme: AppThemes.getLightTheme(themeProvider.currentTheme),
+            darkTheme: AppThemes.getDarkTheme(themeProvider.currentTheme),
             routerConfig: AppNavigator.router,
             debugShowCheckedModeBanner: false,
             builder: (context, child) {

@@ -5,6 +5,7 @@ import 'package:az_incident_alert/providers/subscription_provider.dart';
 import 'package:az_incident_alert/services/revenue_cat_service.dart';
 import 'package:az_incident_alert/utils/app_colors.dart';
 import 'package:az_incident_alert/utils/app_router.dart';
+import 'package:az_incident_alert/utils/extensions/context_ext.dart';
 import 'package:az_incident_alert/utils/shared_prefs.dart';
 import 'package:az_incident_alert/utils/styles.dart';
 import 'package:az_incident_alert/widgets/app_button.dart';
@@ -234,12 +235,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return PopScope(
       canPop: false,
       child: AppScaffold(
-        appbarBG: isDark ? Colors.black : Colors.white,
+        appbarBG: context.appColors.bgColor,
         body: SafeArea(
         child: _isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  color: AppColors.dPrimary,
+                  color: context.appColors.primaryColor,
                 ),
               )
             : Padding(

@@ -572,7 +572,7 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
         setState(() {});
         Fluttertoast.showToast(
           msg: 'Now following $displayName',
-          backgroundColor: AppColors.dPrimary,
+          backgroundColor: context.appColors.primaryColor,
           timeInSecForIosWeb: 3,
         );
       }
@@ -677,11 +677,11 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
               Navigator.pop(context);
               Fluttertoast.showToast(
                 msg: 'Now following $wildcardName',
-                backgroundColor: AppColors.dPrimary,
+                backgroundColor: context.appColors.primaryColor,
               );
             },
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.dPrimary,
+              foregroundColor: context.appColors.primaryColor,
             ),
             child: const Text('Replace'),
           ),
