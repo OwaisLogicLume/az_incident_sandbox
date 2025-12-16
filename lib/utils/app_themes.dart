@@ -35,19 +35,33 @@ class AppThemes {
       brightness: Brightness.light,
       primaryColor: primaryColor,
       scaffoldBackgroundColor: bgColor,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+
+      // Light ColorScheme with theme colors
+      colorScheme: ColorScheme.light(
+        primary: primaryColor,
+        secondary: primaryColor,
+        surface: Colors.white,
+        background: bgColor,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: Colors.black,
+        onBackground: Colors.black,
+      ),
+
+      appBarTheme: AppBarTheme(
+        backgroundColor: primaryColor,  // Use theme color for AppBar
+        foregroundColor: Colors.white,
         elevation: 0,
-        scrolledUnderElevation: 0,
+        scrolledUnderElevation: 2,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.black12,
-        systemOverlayStyle: SystemUiOverlayStyle(
+        systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarBrightness: Brightness.light,
-          statusBarIconBrightness: Brightness.dark,
+          statusBarIconBrightness: Brightness.light,  // Light icons on colored AppBar
           statusBarColor: Colors.transparent,
         ),
       ),
+
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: CupertinoPageTransitionsBuilder(),
@@ -58,23 +72,43 @@ class AppThemes {
   }
 
   static ThemeData getDarkTheme(AppTheme appTheme) {
-    // All dark themes use the same dark background
+    // Dark mode uses fixed grayscale colors - no theme variants
+    const primaryColor = Colors.white;
+    final secondaryColor = Colors.grey[700]!;
+
     return ThemeData(
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.blueDBg,
+      primaryColor: primaryColor,
+      scaffoldBackgroundColor: const Color(0xff000000), // Pure black background
+
+      // Fixed grayscale ColorScheme for dark mode
+      colorScheme: ColorScheme.dark(
+        primary: primaryColor,
+        secondary: secondaryColor,
+        surface: AppColors.darkSurface,           // Cards, elevated surfaces
+        surfaceContainerHighest: AppColors.darkSurfaceVariant, // Dialogs
+        background: const Color(0xff000000),      // Pure black
+        onPrimary: Colors.black,
+        onSecondary: Colors.white,
+        onSurface: Colors.white,
+        onBackground: Colors.white,
+        outline: AppColors.darkBorder,
+      ),
+
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.black,
+        backgroundColor: Color(0xff000000),  // Pure black AppBar for dark mode
         foregroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.white10,
+        shadowColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarBrightness: Brightness.dark,
           statusBarIconBrightness: Brightness.light,
           statusBarColor: Colors.transparent,
         ),
       ),
+
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: CupertinoPageTransitionsBuilder(),

@@ -18,56 +18,61 @@ class AppColors {
   static const blueLPrimary = Color(0xff394b61);
   static const blueLSecondary = Color(0xff5e92c4);
   static const blueLTernary = Color(0xffbddafa);
-  static const blueLBg = Color(0xfff8f7f2);
+  static const blueLBg = Color(0xffe8e6dd);  // Darker gray-beige
 
   static const blueDPrimary = Color(0xff102A43);
   static const blueDSecondary = Color(0xff4a7ba4);
   static const blueDTernary = Color(0xff2b4c6f);
-  static const blueDBg = Color(0xff121212);
+  static const blueDBg = Color(0xff000000);  // Pure black for maximum darkness
 
   // Theme 2: Desert Sunset
   static const sunsetLPrimary = Color(0xffE8833A);
   static const sunsetLSecondary = Color(0xffF4B942);
   static const sunsetLTernary = Color(0xffFFD699);
-  static const sunsetLBg = Color(0xffFFF8F0);
+  static const sunsetLBg = Color(0xffF5E6D3);  // Darker warm beige
 
   static const sunsetDPrimary = Color(0xffD4662A);
   static const sunsetDSecondary = Color(0xffE89A3A);
   static const sunsetDTernary = Color(0xff5C2E1A);
-  static const sunsetDBg = Color(0xff121212);
+  static const sunsetDBg = Color(0xff000000);  // Pure black for maximum darkness
 
   // Theme 3: Terracotta
   static const terracottaLPrimary = Color(0xffC85A3E);
   static const terracottaLSecondary = Color(0xffE89A73);
   static const terracottaLTernary = Color(0xffF4C4A8);
-  static const terracottaLBg = Color(0xffFDF6F0);
+  static const terracottaLBg = Color(0xffF2E3D5);  // Darker terracotta tint
 
   static const terracottaDPrimary = Color(0xff9B3922);
   static const terracottaDSecondary = Color(0xffC85A3E);
   static const terracottaDTernary = Color(0xff6B2818);
-  static const terracottaDBg = Color(0xff121212);
+  static const terracottaDBg = Color(0xff000000);  // Pure black for maximum darkness
 
   // Theme 4: Adobe
   static const adobeLPrimary = Color(0xffD4A574);
   static const adobeLSecondary = Color(0xffB88C5D);
   static const adobeLTernary = Color(0xffE8C9A0);
-  static const adobeLBg = Color(0xffFAF5EE);
+  static const adobeLBg = Color(0xffEBE2D5);  // Darker adobe tan
 
   static const adobeDPrimary = Color(0xff8B6F47);
   static const adobeDSecondary = Color(0xffB88C5D);
   static const adobeDTernary = Color(0xff5C4A33);
-  static const adobeDBg = Color(0xff121212);
+  static const adobeDBg = Color(0xff000000);  // Pure black for maximum darkness
 
   // Theme 5: Cactus Green
   static const greenLPrimary = Color(0xff7B9337);
   static const greenLSecondary = Color(0xff5B7521);
   static const greenLTernary = Color(0xffA8C46F);
-  static const greenLBg = Color(0xffF5F8F0);
+  static const greenLBg = Color(0xffE5EAD8);  // Darker sage green
 
   static const greenDPrimary = Color(0xff5B7521);
   static const greenDSecondary = Color(0xff7B9337);
   static const greenDTernary = Color(0xff445716);
-  static const greenDBg = Color(0xff121212);
+  static const greenDBg = Color(0xff000000);  // Pure black for maximum darkness
+
+  // Dark theme surface colors for layering and hierarchy
+  static const darkSurface = Color(0xff1a1a1a);        // Cards, elevated surfaces
+  static const darkSurfaceVariant = Color(0xff2a2a2a); // Dialogs, bottom sheets
+  static const darkBorder = Color(0xff333333);         // Border colors
 
   // Tile colors (same for all themes)
   static const lTile1 = Color(0xfff0b9cc);
@@ -96,75 +101,97 @@ class AppColors {
   static var blackGreyColor;
 
   // Get colors based on current theme
+  // Dark mode: Fixed grayscale colors (no theme variants)
+  // Light mode: Theme-based colors
   Color get primaryColor {
-    final theme = context.watch<ThemeProvider>().currentTheme;
     final isDark = context.isDark;
 
+    if (isDark) {
+      return white;  // Fixed white for dark mode
+    }
+
+    // Light mode: theme-based colors
+    final theme = context.watch<ThemeProvider>().currentTheme;
     switch (theme) {
       case AppTheme.blue:
-        return isDark ? white : blueLPrimary;
+        return blueLPrimary;
       case AppTheme.desertSunset:
-        return isDark ? white : sunsetLPrimary;
+        return sunsetLPrimary;
       case AppTheme.terracotta:
-        return isDark ? white : terracottaLPrimary;
+        return terracottaLPrimary;
       case AppTheme.adobe:
-        return isDark ? white : adobeLPrimary;
+        return adobeLPrimary;
       case AppTheme.cactusGreen:
-        return isDark ? white : greenLPrimary;
+        return greenLPrimary;
     }
   }
 
   Color get secondaryColor {
-    final theme = context.watch<ThemeProvider>().currentTheme;
     final isDark = context.isDark;
 
+    if (isDark) {
+      return Colors.grey[700]!;  // Fixed gray for dark mode
+    }
+
+    // Light mode: theme-based colors
+    final theme = context.watch<ThemeProvider>().currentTheme;
     switch (theme) {
       case AppTheme.blue:
-        return isDark ? blueDSecondary : blueLSecondary;
+        return blueLSecondary;
       case AppTheme.desertSunset:
-        return isDark ? sunsetDSecondary : sunsetLSecondary;
+        return sunsetLSecondary;
       case AppTheme.terracotta:
-        return isDark ? terracottaDSecondary : terracottaLSecondary;
+        return terracottaLSecondary;
       case AppTheme.adobe:
-        return isDark ? adobeDSecondary : adobeLSecondary;
+        return adobeLSecondary;
       case AppTheme.cactusGreen:
-        return isDark ? greenDSecondary : greenLSecondary;
+        return greenLSecondary;
     }
   }
 
   Color get ternaryColor {
-    final theme = context.watch<ThemeProvider>().currentTheme;
     final isDark = context.isDark;
 
+    if (isDark) {
+      return Colors.grey[600]!;  // Fixed light gray for dark mode
+    }
+
+    // Light mode: theme-based colors
+    final theme = context.watch<ThemeProvider>().currentTheme;
     switch (theme) {
       case AppTheme.blue:
-        return isDark ? blueDTernary : blueLTernary;
+        return blueLTernary;
       case AppTheme.desertSunset:
-        return isDark ? sunsetDTernary : sunsetLTernary;
+        return sunsetLTernary;
       case AppTheme.terracotta:
-        return isDark ? terracottaDTernary : terracottaLTernary;
+        return terracottaLTernary;
       case AppTheme.adobe:
-        return isDark ? adobeDTernary : adobeLTernary;
+        return adobeLTernary;
       case AppTheme.cactusGreen:
-        return isDark ? greenDTernary : greenLTernary;
+        return greenLTernary;
     }
   }
 
   Color get bgColor {
-    final theme = context.watch<ThemeProvider>().currentTheme;
     final isDark = context.isDark;
 
+    if (isDark) {
+      return black;  // Fixed pure black for dark mode
+    }
+
+    // Light mode: theme-based colors
+    final theme = context.watch<ThemeProvider>().currentTheme;
     switch (theme) {
       case AppTheme.blue:
-        return isDark ? blueDBg : blueLBg;
+        return blueLBg;
       case AppTheme.desertSunset:
-        return isDark ? sunsetDBg : sunsetLBg;
+        return sunsetLBg;
       case AppTheme.terracotta:
-        return isDark ? terracottaDBg : terracottaLBg;
+        return terracottaLBg;
       case AppTheme.adobe:
-        return isDark ? adobeDBg : adobeLBg;
+        return adobeLBg;
       case AppTheme.cactusGreen:
-        return isDark ? greenDBg : greenLBg;
+        return greenLBg;
     }
   }
 

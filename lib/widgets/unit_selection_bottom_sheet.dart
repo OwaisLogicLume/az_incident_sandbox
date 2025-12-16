@@ -146,7 +146,7 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
     setState(() {});
     Fluttertoast.showToast(
       msg: 'Added $unit',
-      backgroundColor: context.appColors.primaryColor,
+      backgroundColor: context.appColors.secondaryColor,
       timeInSecForIosWeb: 3,
     );
   }
@@ -213,14 +213,14 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   color: isDark
-                      ? Colors.grey[850]
+                      ? const Color(0xff2a2a2a)  // Medium gray in dark mode
                       : Colors.grey[100],
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
                       color: isDark
-                          ? Colors.grey[700]!
+                          ? const Color(0xff404040)  // Lighter gray border
                           : Colors.grey[300]!,
                       width: 1,
                     ),
@@ -228,18 +228,23 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
                   child: ListTile(
                     leading: Icon(
                       isWildcard ? Icons.star : Icons.circle,
-                      color: context.appColors.primaryColor,
+                      color: isDark
+                          ? Colors.grey[400]  // Gray icon in dark mode
+                          : context.appColors.primaryColor,
                     ),
                     title: Text(
                       displayName,
                       style: textStyle16Bold.copyWith(
-                        color: isWildcard
-                            ? context.appColors.primaryColor
-                            : null,
+                        color: isDark
+                            ? Colors.white  // White text in dark mode
+                            : (isWildcard ? context.appColors.primaryColor : null),
                       ),
                     ),
                     trailing: IconButton(
-                      icon: Icon(Icons.close, color: Theme.of(context).colorScheme.error),
+                      icon: Icon(
+                        Icons.close,
+                        color: isDark ? Colors.grey[400] : Theme.of(context).colorScheme.error,
+                      ),
                       onPressed: () {
                         _tempSelectedUnits.remove(unit);
                         setState(() {});
@@ -398,6 +403,8 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
   }
 
   Widget _buildActionButtons() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -417,8 +424,11 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
             child: ElevatedButton(
               onPressed: _done,
               style: ElevatedButton.styleFrom(
-                backgroundColor: context.appColors.primaryColor,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                // Use secondary color in dark mode for better visibility
+                backgroundColor: isDark
+                    ? context.appColors.secondaryColor
+                    : context.appColors.primaryColor,
+                foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
               ),
               child: Text(
@@ -480,21 +490,30 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
     }
 
     final isSelected = _tempSelectedUnits.contains(wildcard);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final textColor = Theme.of(context).colorScheme.onPrimary;
+    // In dark mode: use gray colors only, no theme colors
+    // In light mode: use theme colors
+    final backgroundColor = isDark
+        ? (isSelected ? const Color(0xff404040) : const Color(0xff2a2a2a))
+        : context.appColors.primaryColor;
+
+    final borderColor = isDark
+        ? const Color(0xff606060)  // Gray border in dark mode
+        : context.appColors.primaryColor;
+
+    final textColor = Colors.white;  // Always white text
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         border: Border.all(
-          color: context.appColors.primaryColor,
+          color: borderColor,
           width: 1.5,
         ),
         borderRadius: BorderRadius.circular(8),
-        color: isSelected
-            ? context.appColors.primaryColor
-            : context.appColors.primaryColor.withOpacity(0.9),
+        color: backgroundColor,
       ),
       child: InkWell(
         onTap: () => _toggleWildcard(wildcard),
@@ -572,7 +591,7 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
         setState(() {});
         Fluttertoast.showToast(
           msg: 'Now following $displayName',
-          backgroundColor: context.appColors.primaryColor,
+          backgroundColor: context.appColors.secondaryColor,
           timeInSecForIosWeb: 3,
         );
       }
@@ -677,7 +696,7 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
               Navigator.pop(context);
               Fluttertoast.showToast(
                 msg: 'Now following $wildcardName',
-                backgroundColor: context.appColors.primaryColor,
+                backgroundColor: context.appColors.secondaryColor,
               );
             },
             style: TextButton.styleFrom(

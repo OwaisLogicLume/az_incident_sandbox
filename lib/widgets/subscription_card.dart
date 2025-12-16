@@ -48,7 +48,9 @@ class SubscriptionPlanCard extends StatelessWidget {
                 color: isDark ? Colors.grey[850] : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: context.appColors.primaryColor.withOpacity(0.3),
+                  color: isDark
+                      ? Colors.grey[700]!
+                      : context.appColors.primaryColor,
                   width: 1.5,
                 ),
               ),
@@ -141,7 +143,10 @@ class SubscriptionPlanCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: context.appColors.primaryColor,
+                    // Match border color for consistency
+                    color: isDark
+                        ? Colors.grey[700]
+                        : context.appColors.primaryColor,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),
