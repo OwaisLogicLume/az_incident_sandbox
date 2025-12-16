@@ -22,7 +22,6 @@ class SharedPrefs {
   final String _mapTypeKey = 'mapType';
   final String _hasUserSelectedMapTypeKey = 'hasUserSelectedMapType';
   final String _themeIndexKey = 'appThemeIndex';
-  final String _hasAcceptedTermsKey = 'has_accepted_terms';
 
   init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -185,11 +184,4 @@ class SharedPrefs {
     log('Theme index saved: $index');
   }
 
-  /// Terms and Conditions Acceptance
-  bool get hasAcceptedTerms => _prefs.getBool(_hasAcceptedTermsKey) ?? false;
-
-  Future<void> setTermsAccepted(bool value) async {
-    await _prefs.setBool(_hasAcceptedTermsKey, value);
-    log('Terms accepted: $value');
-  }
 }
