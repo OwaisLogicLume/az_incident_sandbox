@@ -213,6 +213,13 @@ class IncidentsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Disable admin mode and persist to SharedPrefs
+  Future<void> disableAdminMode() async {
+    _isAdminMode = false;
+    await SharedPrefs.instance.setAdminMode(false);
+    notifyListeners();
+  }
+
   Future<void> getAllStations() async {
     setAleartLoading(true);
     List<String> stations = await FirebaseService.instance.getUsersStations();

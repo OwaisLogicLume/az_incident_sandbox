@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:az_incident_alert/providers/incidents_provider.dart';
 import 'package:az_incident_alert/utils/app_colors.dart';
 import 'package:az_incident_alert/utils/extensions/context_ext.dart';
@@ -22,7 +24,7 @@ class UnitSelectionBottomSheet extends StatefulWidget {
       _UnitSelectionBottomSheetState();
 }
 
-class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
+class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   Set<String> _tempSelectedUnits = {};
 
@@ -30,15 +32,67 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
   int _tapCount = 0;
   DateTime? _lastTapTime;
 
+  // Admin mode timeout
+  Timer? _adminModeTimer;
+  DateTime? _adminModeActivatedAt;
+
   @override
   void initState() {
     super.initState();
     _tempSelectedUnits = Set.from(widget.currentlySelectedUnits);
     _searchController.addListener(() => setState(() {})); // Rebuild on text change
 
-    // Load admin mode from SharedPrefs
+    // Add lifecycle observer
+    WidgetsBinding.instance.addObserver(this);
+
+    // Disable admin mode when view is loaded (fresh)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<IncidentsProvider>().loadAdminMode();
+      _disableAdminModeOnLoad();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // When app resumes from background, disable admin mode
+    if (state == AppLifecycleState.resumed) {
+      _disableAdminModeOnLoad();
+    }
+  }
+
+  void _disableAdminModeOnLoad() {
+    final provider = context.read<IncidentsProvider>();
+
+    // Always disable admin mode when view is loaded or app resumes
+    if (provider.isAdminMode) {
+      provider.disableAdminMode();
+      _adminModeTimer?.cancel();
+      _adminModeTimer = null;
+      _adminModeActivatedAt = null;
+    }
+  }
+
+  void _startAdminModeTimer() {
+    _adminModeTimer?.cancel();
+    _adminModeActivatedAt = DateTime.now();
+
+    _adminModeTimer = Timer(const Duration(seconds: 30), () {
+      if (mounted) {
+        final provider = context.read<IncidentsProvider>();
+        if (provider.isAdminMode) {
+          provider.disableAdminMode();
+          _adminModeActivatedAt = null;
+
+          Fluttertoast.showToast(
+            msg: 'Admin mode expired (30 seconds)',
+            backgroundColor: Colors.orange,
+            toastLength: Toast.LENGTH_SHORT,
+          );
+
+          setState(() {}); // Rebuild UI
+        }
+      }
     });
   }
 
@@ -65,9 +119,19 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
       final provider = context.read<IncidentsProvider>();
       provider.toggleAdminMode();
 
+      if (provider.isAdminMode) {
+        // Start 30-second timer when enabled
+        _startAdminModeTimer();
+      } else {
+        // Cancel timer when disabled
+        _adminModeTimer?.cancel();
+        _adminModeTimer = null;
+        _adminModeActivatedAt = null;
+      }
+
       Fluttertoast.showToast(
         msg: provider.isAdminMode
-            ? 'Admin mode enabled - Full wildcard access granted'
+            ? 'Admin mode enabled - Full wildcard access granted (30 sec)'
             : 'Admin mode disabled',
         backgroundColor: provider.isAdminMode ? Colors.green : Colors.orange,
         toastLength: Toast.LENGTH_LONG,
@@ -271,6 +335,8 @@ class _UnitSelectionBottomSheetState extends State<UnitSelectionBottomSheet> {
   @override
   void dispose() {
     _searchController.dispose();
+    _adminModeTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
