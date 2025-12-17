@@ -60,25 +60,19 @@ class _IncidencesScreenState extends State<IncidencesScreen> {
       _doubleTapTimer?.cancel();
       _tapCount = 0;
 
-      // Check if in dark mode
-      final isDark = Theme.of(context).brightness == Brightness.dark;
+      // Allow theme switching in both light and dark mode
+      final themeProvider = context.read<ThemeProvider>();
+      themeProvider.cycleTheme();
 
-      // Only allow theme switching in light mode
-      if (!isDark) {
-        final themeProvider = context.read<ThemeProvider>();
-        themeProvider.cycleTheme();
-
-        // Show toast with theme name
-        Fluttertoast.showToast(
-          msg: "Theme: ${themeProvider.themeName}",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.black87,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
-      }
-      // In dark mode, do nothing (silently ignore)
+      // Show toast with theme name
+      Fluttertoast.showToast(
+        msg: "Theme: ${themeProvider.themeName}",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black87,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 

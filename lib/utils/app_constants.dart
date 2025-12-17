@@ -84,12 +84,18 @@ final Map<String, String> kSymbolCodesImagesOld = {
 String getIconForSymbolCode(String symbolCode) {
   final code = symbolCode.toLowerCase();
 
-  // Fire-related incidents
+  // Apartment/Working fires (sc033-fire2) - check first for priority
+  if (code.contains('sc033') || code.contains('fire2')) {
+    return 'assets/images/png/fire2.png';
+  }
+
+  // Regular fire incidents (sc006-fire)
   if (code.contains('fire') ||
       code.contains('burn') ||
       code.contains('smoke') ||
+      code.contains('alarm') ||
       code.contains('flame')) {
-    return 'assets/images/png/Fire.png';
+    return 'assets/images/png/fire.png';
   }
 
   // Crash/Accident incidents
@@ -97,25 +103,30 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('accident') ||
       code.contains('collision') ||
       code.contains('vehicle')) {
-    return 'assets/images/png/Car Crash.png';
+    return 'assets/images/png/car crash.png';
   }
 
   // Hazmat incidents
-  if (code.contains('hazmat') ||
-      code.contains('chemical') ||
+  if (code.contains('chemical') ||
       code.contains('mryuk') ||
       code.contains('toxic') ||
       code.contains('spill')) {
-    return 'assets/images/png/Haz Mat.png';
+    return 'assets/images/png/haz mat.png';
+  }
+
+  // medical incidents
+  if (code.contains('medical')) {
+    return 'assets/images/png/major medical.png';
   }
 
   // Electrical hazards
   if (code.contains('zap') ||
       code.contains('electric') ||
+      code.contains('hazmat') ||
       code.contains('powerline') ||
       code.contains('power') ||
       code.contains('wire')) {
-    return 'assets/images/png/Electric Hazard.png';
+    return 'assets/images/png/electric hazard.png';
   }
 
   // Water rescue incidents
@@ -126,7 +137,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('swim') ||
       code.contains('river') ||
       code.contains('lake')) {
-    return 'assets/images/png/Lifebuoy.png';
+    return 'assets/images/png/lifebuoy.png';
   }
 
   // Mountain/cliff rescue
@@ -135,7 +146,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('climb') ||
       code.contains('hike') ||
       code.contains('trail')) {
-    return 'assets/images/png/Mountain Rescue.png';
+    return 'assets/images/png/mountain rescue.png';
   }
 
   // Snake incidents
@@ -143,7 +154,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('reptile') ||
       code.contains('serpent') ||
       code.contains('bite')) {
-    return 'assets/images/png/Snake.png';
+    return 'assets/images/png/snake.png';
   }
 
   // Bee/insect incidents
@@ -151,8 +162,9 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('wasp') ||
       code.contains('hornet') ||
       code.contains('sting') ||
+      code.contains('insect') ||
       code.contains('swarm')) {
-    return 'assets/images/png/Bee.png';
+    return 'assets/images/png/bee.png';
   }
 
   // Lockout incidents
@@ -160,11 +172,11 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('trapped') ||
       code.contains('stuck') ||
       code.contains('key')) {
-    return 'assets/images/png/Lock Out.png';
+    return 'assets/images/png/lock out.png';
   }
 
   // Default fallback for everything else
-  return 'assets/images/png/Other Hazard.png';
+  return 'assets/images/png/other hazard.png';
 }
 
 /// Keep old kSymbolCodesImages name for backward compatibility

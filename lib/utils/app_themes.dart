@@ -72,31 +72,73 @@ class AppThemes {
   }
 
   static ThemeData getDarkTheme(AppTheme appTheme) {
-    // Dark mode uses fixed grayscale colors - no theme variants
-    const primaryColor = Colors.white;
-    final secondaryColor = Colors.grey[700]!;
+    // Dark mode now uses theme-specific colors (muted/darker variants)
+    Color primaryColor;
+    Color secondaryColor;
+    Color ternaryColor;
+    Color bgColor;
+    Color surfaceColor;
+
+    switch (appTheme) {
+      case AppTheme.blue:
+        primaryColor = AppColors.blueDPrimary;
+        secondaryColor = AppColors.blueDSecondary;
+        ternaryColor = AppColors.blueDTernary;
+        bgColor = AppColors.blueDBg;
+        surfaceColor = AppColors.blueDSurface;
+        break;
+      case AppTheme.desertSunset:
+        primaryColor = AppColors.sunsetDPrimary;
+        secondaryColor = AppColors.sunsetDSecondary;
+        ternaryColor = AppColors.sunsetDTernary;
+        bgColor = AppColors.sunsetDBg;
+        surfaceColor = AppColors.sunsetDSurface;
+        break;
+      case AppTheme.terracotta:
+        primaryColor = AppColors.terracottaDPrimary;
+        secondaryColor = AppColors.terracottaDSecondary;
+        ternaryColor = AppColors.terracottaDTernary;
+        bgColor = AppColors.terracottaDBg;
+        surfaceColor = AppColors.terracottaDSurface;
+        break;
+      case AppTheme.adobe:
+        primaryColor = AppColors.adobeDPrimary;
+        secondaryColor = AppColors.adobeDSecondary;
+        ternaryColor = AppColors.adobeDTernary;
+        bgColor = AppColors.adobeDBg;
+        surfaceColor = AppColors.adobeDSurface;
+        break;
+      case AppTheme.cactusGreen:
+        primaryColor = AppColors.greenDPrimary;
+        secondaryColor = AppColors.greenDSecondary;
+        ternaryColor = AppColors.greenDTernary;
+        bgColor = AppColors.greenDBg;
+        surfaceColor = AppColors.greenDSurface;
+        break;
+    }
 
     return ThemeData(
       brightness: Brightness.dark,
       primaryColor: primaryColor,
-      scaffoldBackgroundColor: const Color(0xff000000), // Pure black background
+      scaffoldBackgroundColor: bgColor, // Theme-tinted dark background
 
-      // Fixed grayscale ColorScheme for dark mode
+      // Theme-specific ColorScheme for dark mode
       colorScheme: ColorScheme.dark(
         primary: primaryColor,
         secondary: secondaryColor,
-        surface: AppColors.darkSurface,           // Cards, elevated surfaces
-        surfaceContainerHighest: AppColors.darkSurfaceVariant, // Dialogs
-        background: const Color(0xff000000),      // Pure black
-        onPrimary: Colors.black,
+        tertiary: ternaryColor,
+        surface: surfaceColor,                    // Theme-tinted cards/surfaces
+        surfaceContainerHighest: surfaceColor,    // Theme-tinted dialogs
+        background: bgColor,                      // Theme-tinted background
+        onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.white,
         onBackground: Colors.white,
-        outline: AppColors.darkBorder,
+        outline: AppColors.darkBorder,            // Keep grayscale borders
       ),
 
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xff000000),  // Pure black AppBar for dark mode
+        backgroundColor: Color(0xff000000),  // Keep pure black AppBar
         foregroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
