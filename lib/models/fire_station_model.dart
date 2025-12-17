@@ -18,10 +18,20 @@ class FireStation {
   });
 
   /// Factory constructor to create FireStation from JSON response
-  /// Supports Overpass API, Google Places API, Phoenix Fire FeatureServer, and Phoenix Fire MapServer GeoJSON
+  /// Supports Overpass API, Google Places API, Phoenix Fire FeatureServer, Phoenix Fire MapServer GeoJSON, and USGS National Map
   factory FireStation.fromJson(Map<String, dynamic> json) {
-    // Check if this is an Esri JSON Feature (Phoenix Fire FeatureServer)
+    // Check if this is an Esri JSON Feature (Phoenix Fire FeatureServer or USGS)
     if (json['attributes'] != null && json['geometry'] != null) {
+      // Try to differentiate between Phoenix Fire and USGS
+      final attributes = json['attributes'] as Map<String, dynamic>;
+      if (attributes.containsKey('STATION')) {
+        // Phoenix Fire has STATION field
+        return FireStation.fromPhoenixFireEsriJson(json);
+      } else if (attributes.containsKey('NAME') && attributes.containsKey('STATE')) {
+        // USGS has NAME and STATE fields
+        return FireStation.fromUSGSEsriJson(json);
+      }
+      // Default to Phoenix Fire format for backwards compatibility
       return FireStation.fromPhoenixFireEsriJson(json);
     }
 
@@ -149,6 +159,59 @@ class FireStation {
         'proposed': properties['PROPOSED'],
         'private': properties['PRIVATE'],
         'objectid': properties['OBJECTID'],
+      },
+    );
+  }
+
+  /// Factory constructor for USGS National Map Esri JSON response
+  factory FireStation.fromUSGSEsriJson(Map<String, dynamic> json) {
+    final attributes = json['attributes'] as Map<String, dynamic>;
+    final geometry = json['geometry'] as Map<String, dynamic>;
+
+    // Esri JSON geometry: {x: longitude, y: latitude}
+    // Note: USGS returns coordinates in requested projection (4326 = WGS84)
+    final lng = (geometry['x'] as num).toDouble();
+    final lat = (geometry['y'] as num).toDouble();
+
+    // Get station name from NAME field
+    String name = attributes['NAME']?.toString() ?? 'Fire Station';
+
+    // Extract station number if present in name (e.g., "Station 201" -> "201")
+    String? stationNumber;
+    final stationMatch = RegExp(r'Station\s+(\d+\w*)', caseSensitive: false).firstMatch(name);
+    if (stationMatch != null) {
+      stationNumber = stationMatch.group(1);
+    }
+
+    // Build full address including city and state
+    String? fullAddress = attributes['ADDRESS'] as String?;
+    final city = attributes['CITY'] as String?;
+    final state = attributes['STATE'] as String?;
+    final zipcode = attributes['ZIPCODE'] as String?;
+
+    if (fullAddress != null) {
+      final parts = <String>[fullAddress];
+      if (city != null && city.isNotEmpty) parts.add(city);
+      if (state != null && state.isNotEmpty) parts.add(state);
+      if (zipcode != null && zipcode.isNotEmpty) parts.add(zipcode);
+      fullAddress = parts.join(', ');
+    }
+
+    return FireStation(
+      id: stationNumber ?? attributes['OBJECTID']?.toString() ?? 'unknown',
+      name: name,
+      lat: lat,
+      lng: lng,
+      address: fullAddress,
+      tags: {
+        'source': 'usgs_national_map',
+        'objectid': attributes['OBJECTID'],
+        'city': city,
+        'state': state,
+        'zipcode': zipcode,
+        'fcode': attributes['FCODE'],
+        'gnis_id': attributes['GNIS_ID'],
+        'admintype': attributes['ADMINTYPE'],
       },
     );
   }

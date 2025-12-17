@@ -286,18 +286,9 @@ final scaleFactor = 30 / mbxImage.width;
       // Create annotations for each fire station
       for (FireStation station in provider.fireStations) {
         try {
-          // Extract station number
-          String? stationNumber;
-          if (station.id.startsWith('ST') || station.id.startsWith('st')) {
-            stationNumber = station.id.substring(2);
-          } else if (RegExp(r'^\d+$').hasMatch(station.id)) {
-            stationNumber = station.id;
-          } else {
-            final numberMatch = RegExp(r'Station\s+#?(\d+)', caseSensitive: false).firstMatch(station.name);
-            if (numberMatch != null) {
-              stationNumber = numberMatch.group(1);
-            }
-          }
+          // Use the station ID directly - it contains the complete identifier (e.g., "606", "606T")
+          // This matches how ArcGIS displays station numbers with their suffixes
+          String stationNumber = station.id;
 
           // Reduce icon size by 50% (15 instead of 30)
           final scaleFactor = 15 / mbxImage.width;
@@ -310,7 +301,7 @@ final scaleFactor = 30 / mbxImage.width;
             ),
             iconImage: imageId,
             iconSize: scaleFactor,
-            textField: stationNumber ?? '', // Add station number as text
+            textField: stationNumber, // Display complete station identifier (e.g., "606", "606T")
             textSize: 11.0, // Slightly larger to appear bolder
             textColor: Colors.black.value,
             textOffset: [0.0, 1.5], // Position text below icon
