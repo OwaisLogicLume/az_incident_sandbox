@@ -5,7 +5,6 @@ import 'package:latlong2/latlong.dart';
 
 enum IncidentApiSource {
   phoenixFire,  // Phoenix Fire Department ESRI API
-  phxsdr,       // phxsdr.com API
 }
 
 abstract class BaseIncidentService {
@@ -26,74 +25,32 @@ class IncidentService implements BaseIncidentService {
 
   @override
   Future getIncidents() async {
-    print('flutter: [IncidentService] 🔄 Fetching from BOTH APIs...');
+    print('flutter: [IncidentService] 🔄 Fetching incidents from Phoenix Fire API...');
     _lastApiCall = DateTime.now();
 
     try {
-      // Fetch from both APIs in parallel
-      final results = await Future.wait([
-        _fetchFromPhoenixFire(),
-        _fetchFromPhxsdr(),
-      ], eagerError: false);
+      // Fetch from Phoenix Fire API
+      final data = await _fetchFromPhoenixFire();
 
-      final phoenixData = results[0];
-      final phxsdrData = results[1];
+      if (data != null && data['features'] != null) {
+        final features = data['features'] as List;
+        print('flutter: [IncidentService] ✅ Phoenix Fire: ${features.length} incidents');
 
-      // Merge features from both sources and tag with API source
-      final allFeatures = <dynamic>[];
-
-      if (phoenixData != null && phoenixData['features'] != null) {
-        final phoenixFeatures = phoenixData['features'] as List;
-        // Tag each feature with its source
-        for (var feature in phoenixFeatures) {
-          feature['_apiSource'] = 'Phoenix Fire';
-          allFeatures.add(feature);
-        }
-        print('flutter: [IncidentService] ✅ Phoenix Fire: ${phoenixFeatures.length} incidents');
-      }
-
-      if (phxsdrData != null && phxsdrData['features'] != null) {
-        final phxsdrFeatures = phxsdrData['features'] as List;
-        // Tag each feature with its source
-        for (var feature in phxsdrFeatures) {
-          feature['_apiSource'] = 'phxsdr';
-          allFeatures.add(feature);
-        }
-        print('flutter: [IncidentService] ✅ phxsdr: ${phxsdrFeatures.length} incidents');
-      }
-
-      // Remove duplicates based on Incident ID
-      final Map<String, dynamic> uniqueIncidents = {};
-      int phoenixCount = 0;
-      int phxsdrCount = 0;
-
-      for (var feature in allFeatures) {
-        final incidentId = feature['attributes']?['Incident']?.toString();
-        if (incidentId != null && !uniqueIncidents.containsKey(incidentId)) {
-          uniqueIncidents[incidentId] = feature;
-          final apiSource = feature['_apiSource'];
-
-          // Count by source
-          if (apiSource == 'Phoenix Fire') {
-            phoenixCount++;
-          } else if (apiSource == 'phxsdr') {
-            phxsdrCount++;
-          }
-
-          // Log each unique incident with its source
+        // Log each incident with details
+        for (var feature in features) {
+          final incidentId = feature['attributes']?['Incident']?.toString();
           final location = feature['attributes']?['GenLocInfo'] ?? 'Unknown location';
           final nature = feature['attributes']?['Nature'] ?? 'Unknown';
-          print('flutter: [IncidentService] 📍 [$apiSource] $incidentId - $nature at $location');
+          if (incidentId != null) {
+            print('flutter: [IncidentService] 📍 $incidentId - $nature at $location');
+          }
         }
+
+        print('flutter: [IncidentService] 📊 Total incidents: ${features.length}');
       }
 
-      print('flutter: [IncidentService] 📊 Total unique incidents: ${uniqueIncidents.length}');
-      print('flutter: [IncidentService] 📊 Breakdown: Phoenix Fire=$phoenixCount, phxsdr=$phxsdrCount');
-
       // Return in the same format as original API
-      return {
-        'features': uniqueIncidents.values.toList(),
-      };
+      return data;
     } catch (e) {
       print('flutter: [IncidentService] ❌ Error fetching incidents: $e');
       rethrow;
@@ -107,24 +64,6 @@ class IncidentService implements BaseIncidentService {
       return res.data;
     } catch (e) {
       print('flutter: [IncidentService] ⚠️ Phoenix Fire API error: $e');
-      return {'features': []};  // Return empty on error
-    }
-  }
-
-  /// Fetch from phxsdr.com API
-  Future<dynamic> _fetchFromPhxsdr() async {
-    try {
-      // phxsdr API uses absolute URL, need Dio instance without base URL
-      final dio = Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-      ));
-
-      final res = await dio.get(kPhxsdrApiUrl);
-      // phxsdr API response format matches Phoenix Fire (Esri JSON with features array)
-      return res.data;
-    } catch (e) {
-      print('flutter: [IncidentService] ⚠️ phxsdr API error: $e');
       return {'features': []};  // Return empty on error
     }
   }
