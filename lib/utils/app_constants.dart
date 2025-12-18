@@ -4,6 +4,10 @@ import 'package:latlong2/latlong.dart';
 /// Map Tiler Key
 const String kMapTilerKey = 'vL19ajsuZbJdHPIHS4J3';
 
+/// API Endpoints
+const String kPhxsdrApiUrl = 'https://api.phxsdr.com/api/incidents';
+const String kPhoenixFireApiPath = '/phxfire/rest/services/Active_Incidents__Public/MapServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=100&where=1%3D1&orderByFields=Incident%20DESC&outFields=*&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryPoint';
+
 /// Work manager keys
 const String kGetIncidentBGTaskIdentifier = 'get_incident_bg_task_identifier';
 const String kGetIncidentBGTaskName = 'get_incident_bg_task_name';

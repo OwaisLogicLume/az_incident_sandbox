@@ -62,22 +62,59 @@
     return false;
   }
 
-  // URL : https://maps.phoenix.gov/phxfire/rest/services/Active_Incidents__Public/MapServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=100&where=1%3D1&orderByFields=Incident%20DESC&outFields=*&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryPoint
+  // API URLs
+  const PHOENIX_FIRE_API = "https://maps.phoenix.gov/phxfire/rest/services/Active_Incidents__Public/MapServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=100&where=1%3D1&orderByFields=Incident%20DESC&outFields=*&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryPoint";
+  const PHXSDR_API = "https://api.phxsdr.com/api/incidents";
+
+  // Helper function to fetch from a specific API
+  async function fetchFromAPI(apiUrl, apiName) {
+    try {
+      logger.log(`🔄 Fetching from ${apiName}...`);
+      const response = await axios.get(apiUrl, { timeout: 25000 });
+
+      if (response?.data?.error?.code == 500) {
+        logger.log(`❌ ${apiName}: API error 500`);
+        return [];
+      }
+
+      const features = response?.data?.features || [];
+      logger.log(`✅ ${apiName}: ${features.length} incidents`);
+      return features;
+    } catch (error) {
+      logger.error(`⚠️ ${apiName} error:`, error.message);
+      return [];
+    }
+  }
 
   exports.notifyUsers = functions.pubsub
     .schedule("every 1 minutes")
     .onRun(async (message) => {
       try {
-        const response = await axios.get(
-          "https://maps.phoenix.gov/phxfire/rest/services/Active_Incidents__Public/MapServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=100&where=1%3D1&orderByFields=Incident%20DESC&outFields=*&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryPoint"
-        );
+        logger.log('═══════════════════════════════════');
+        logger.log('🚨 FETCHING FROM BOTH APIS');
+        logger.log('═══════════════════════════════════');
 
-        if (response?.data?.error?.code == 500) {
-          logger.log("error from API - returning..");
-          return;
+        // Fetch from both APIs in parallel
+        const [phoenixFeatures, phxsdrFeatures] = await Promise.all([
+          fetchFromAPI(PHOENIX_FIRE_API, 'Phoenix Fire'),
+          fetchFromAPI(PHXSDR_API, 'phxsdr')
+        ]);
+
+        // Merge and deduplicate incidents by Incident ID
+        const allFeatures = [...phoenixFeatures, ...phxsdrFeatures];
+        const uniqueIncidentsMap = new Map();
+
+        for (const feature of allFeatures) {
+          const incidentId = feature.attributes?.Incident;
+          if (incidentId && !uniqueIncidentsMap.has(incidentId)) {
+            uniqueIncidentsMap.set(incidentId, feature);
+          }
         }
 
-        const incidents = response?.data?.features?.map((feature) => ({
+        logger.log(`📊 Total unique incidents: ${uniqueIncidentsMap.size}`);
+
+        // Convert merged incidents to notification format
+        const incidents = Array.from(uniqueIncidentsMap.values()).map((feature) => ({
           id: feature.attributes.Incident,
           stations: getAvailableUnitsAlphanumerics(feature.attributes.Units),
           genLocInfo: feature.attributes.GenLocInfo,
