@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:az_incident_alert/providers/subscription_provider.dart';
 import 'package:az_incident_alert/services/firabse_service.dart';
 import 'package:az_incident_alert/services/push_notification_service.dart';

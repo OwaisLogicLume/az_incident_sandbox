@@ -1,5 +1,4 @@
 import 'package:latlong2/latlong.dart';
-
 class FireStation {
   final String id;
   final String name;
