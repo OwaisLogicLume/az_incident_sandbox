@@ -64,57 +64,28 @@
 
   // API URLs
   const PHOENIX_FIRE_API = "https://maps.phoenix.gov/phxfire/rest/services/Active_Incidents__Public/MapServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=100&where=1%3D1&orderByFields=Incident%20DESC&outFields=*&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryPoint";
-  const PHXSDR_API = "https://api.phxsdr.com/api/incidents";
-
-  // Helper function to fetch from a specific API
-  async function fetchFromAPI(apiUrl, apiName) {
-    try {
-      logger.log(`🔄 Fetching from ${apiName}...`);
-      const response = await axios.get(apiUrl, { timeout: 25000 });
-
-      if (response?.data?.error?.code == 500) {
-        logger.log(`❌ ${apiName}: API error 500`);
-        return [];
-      }
-
-      const features = response?.data?.features || [];
-      logger.log(`✅ ${apiName}: ${features.length} incidents`);
-      return features;
-    } catch (error) {
-      logger.error(`⚠️ ${apiName} error:`, error.message);
-      return [];
-    }
-  }
 
   exports.notifyUsers = functions.pubsub
     .schedule("every 1 minutes")
     .onRun(async (message) => {
       try {
         logger.log('═══════════════════════════════════');
-        logger.log('🚨 FETCHING FROM BOTH APIS');
+        logger.log('🚨 FETCHING INCIDENTS FROM PHOENIX FIRE API');
         logger.log('═══════════════════════════════════');
 
-        // Fetch from both APIs in parallel
-        const [phoenixFeatures, phxsdrFeatures] = await Promise.all([
-          fetchFromAPI(PHOENIX_FIRE_API, 'Phoenix Fire'),
-          fetchFromAPI(PHXSDR_API, 'phxsdr')
-        ]);
+        // Fetch from Phoenix Fire API
+        const response = await axios.get(PHOENIX_FIRE_API, { timeout: 25000 });
 
-        // Merge and deduplicate incidents by Incident ID
-        const allFeatures = [...phoenixFeatures, ...phxsdrFeatures];
-        const uniqueIncidentsMap = new Map();
-
-        for (const feature of allFeatures) {
-          const incidentId = feature.attributes?.Incident;
-          if (incidentId && !uniqueIncidentsMap.has(incidentId)) {
-            uniqueIncidentsMap.set(incidentId, feature);
-          }
+        if (response?.data?.error?.code == 500) {
+          logger.log('❌ Phoenix Fire API: error 500');
+          return null;
         }
 
-        logger.log(`📊 Total unique incidents: ${uniqueIncidentsMap.size}`);
+        const features = response?.data?.features || [];
+        logger.log(`✅ Phoenix Fire: ${features.length} incidents`);
 
-        // Convert merged incidents to notification format
-        const incidents = Array.from(uniqueIncidentsMap.values()).map((feature) => ({
+        // Convert incidents to notification format
+        const incidents = features.map((feature) => ({
           id: feature.attributes.Incident,
           stations: getAvailableUnitsAlphanumerics(feature.attributes.Units),
           genLocInfo: feature.attributes.GenLocInfo,
