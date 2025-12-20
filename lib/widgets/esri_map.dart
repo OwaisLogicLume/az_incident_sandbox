@@ -28,6 +28,18 @@ class _MapBoxWidgetState extends State<MapBoxWidget> {
   final Map<String, FireStation> _annotationFireStationMap = {};
 
   @override
+  void initState() {
+    super.initState();
+    log('🟢 MapBoxWidget initState - Creating new map widget with latLng: ${widget.initialLatLng}');
+  }
+
+  @override
+  void dispose() {
+    log('🔴 MapBoxWidget dispose - Cleaning up map widget');
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final initialLatLng = widget.initialLatLng ?? kPhoenixLatLng;
 
@@ -52,7 +64,6 @@ class _MapBoxWidgetState extends State<MapBoxWidget> {
          });
 
         return MapWidget(
-
           cameraOptions: CameraOptions(
             center: Point(
               coordinates: Position(
@@ -95,9 +106,11 @@ String _getStyleUri(IncidentsProvider provider) {
 
 
   void _onMapCreated(MapboxMap mapboxMap) async {
+    log('🗺️ onMapCreated called!');
     _mapboxMap = mapboxMap;
     _pointAnnotationManager = await mapboxMap.annotations.createPointAnnotationManager();
     _fireStationAnnotationManager = await mapboxMap.annotations.createPointAnnotationManager();
+    log('✅ Annotation managers created');
     await _addMarkers();
 
     // Check if fire stations should be shown on map load
@@ -114,8 +127,14 @@ String _getStyleUri(IncidentsProvider provider) {
     }
 
     final provider = context.read<IncidentsProvider>();
+    log('_addMarkers called: ${provider.incidents.length}');
     provider.clearMarkers();
     _annotationIncidentMap.clear();
+
+    if (provider.incidents.isEmpty) {
+      log('⚠️ No incidents to add markers for!');
+      return;
+    }
 
     final Map<String, MbxImage> imageCache = {};
     for (Incident incident in provider.incidents) {
@@ -130,9 +149,9 @@ String _getStyleUri(IncidentsProvider provider) {
         final mbxImage = await _loadMbxImage(symbolImage);
         final imageId = 'marker_${incident.symbolCode}_${incident.hashCode}';
         imageCache[imageId] = mbxImage;
-        log('Loaded image for ${incident.symbolCode}: ${mbxImage.data.length} bytes');
+        log('✅ Loaded image for ${incident.symbolCode}: ${mbxImage.data.length} bytes from path: $symbolImage');
       } catch (e) {
-        log('Error loading image for ${incident.symbolCode}: $e');
+        log('❌ Error loading image for ${incident.symbolCode} from path $symbolImage: $e');
         continue;
       }
     }
@@ -156,6 +175,8 @@ String _getStyleUri(IncidentsProvider provider) {
     }
 
     // Step 3: Create annotations
+    log('📍 Creating ${imageCache.length} markers...');
+    int successCount = 0;
     for (Incident incident in provider.incidents) {
       // Use intelligent icon resolver to get SVG path
       final symbolImage = getIconForSymbolCode(incident.symbolCode ?? '');
@@ -170,7 +191,7 @@ String _getStyleUri(IncidentsProvider provider) {
           continue;
         }
       final mbxImage = imageCache[imageId]!;
-final scaleFactor = 30 / mbxImage.width; 
+final scaleFactor = 30 / mbxImage.width;
         final pointAnnotationOptions = PointAnnotationOptions(
           geometry: Point(
             coordinates: Position(
@@ -185,19 +206,23 @@ final scaleFactor = 30 / mbxImage.width;
         // Create annotation and get the generated ID
         final annotation = await _pointAnnotationManager!.create(pointAnnotationOptions);
         _annotationIncidentMap[annotation.id] = incident;
-        log('Marker added for incident with symbolCode: ${incident.symbolCode}, ID: ${annotation.id}');
+        successCount++;
+        log('✅ Marker ${successCount} added for ${incident.symbolCode} at (${incident.latLng.latitude}, ${incident.latLng.longitude}), ID: ${annotation.id}');
       } catch (e) {
-        log('Error adding marker for ${incident.symbolCode}: $e');
+        log('❌ Error adding marker for ${incident.symbolCode}: $e');
       }
     }
+    log('🎯 Total markers added: $successCount out of ${provider.incidents.length} incidents');
 
     // Add click listener
     _pointAnnotationManager!.addOnPointAnnotationClickListener(
       PointAnnotationClickListener(
         onClickCallback: (annotation) async {
+          print('Marker tapped with ID: ${annotation.id}');
           log('Marker tapped with ID: ${annotation.id}');
           final incident = _annotationIncidentMap[annotation.id];
           if (incident != null && _mapboxMap != null) {
+            print('Marker tapped with ID: ${incident.symbolCode}  ${incident.latLng}');
             log('Moving camera to incident: ${incident.symbolCode} at ${incident.latLng}');
             await _mapboxMap!.setCamera(
               CameraOptions(
@@ -211,6 +236,7 @@ final scaleFactor = 30 / mbxImage.width;
               ),
             );
             showMarkerInfoSheet(incident);
+            print('showMarkerInfoSheer:${incident.symbolCode}');
             log('Showing marker info sheet for ${incident.symbolCode}');
           } else {
             log('No incident found for ID: ${annotation.id} or MapboxMap is null');
@@ -353,7 +379,6 @@ final scaleFactor = 30 / mbxImage.width;
   /// Remove fire station markers from the map
   Future<void> _removeFireStationMarkers() async {
     if (_fireStationAnnotationManager == null) return;
-
     try {
       await _fireStationAnnotationManager!.deleteAll();
       _annotationFireStationMap.clear();
@@ -484,15 +509,11 @@ final scaleFactor = 30 / mbxImage.width;
 
 class PointAnnotationClickListener implements OnPointAnnotationClickListener {
   final Future<bool> Function(PointAnnotation) onClickCallback;
-
   PointAnnotationClickListener({required this.onClickCallback});
-
   @override
   Future<bool> onPointAnnotationClick(PointAnnotation annotation) {
     return onClickCallback(annotation);
   }
-  
-
 }
 
 

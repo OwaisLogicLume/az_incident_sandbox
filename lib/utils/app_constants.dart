@@ -98,7 +98,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('smoke') ||
       code.contains('alarm') ||
       code.contains('flame')) {
-    return 'assets/images/png/fire.png';
+    return 'assets/images/png/Fire.png';
   }
 
   // Crash/Accident incidents
@@ -114,7 +114,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('mryuk') ||
       code.contains('toxic') ||
       code.contains('spill')) {
-    return 'assets/images/png/haz mat.png';
+    return 'assets/images/png/hazmat.png';
   }
 
   // medical incidents
@@ -129,7 +129,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('powerline') ||
       code.contains('power') ||
       code.contains('wire')) {
-    return 'assets/images/png/electric hazard.png';
+    return 'assets/images/png/Electric Hazard.png';
   }
 
   // Water rescue incidents
@@ -140,7 +140,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('swim') ||
       code.contains('river') ||
       code.contains('lake')) {
-    return 'assets/images/png/lifebuoy.png';
+    return 'assets/images/png/Lifebuoy.png';
   }
 
   // Mountain/cliff rescue
@@ -149,7 +149,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('climb') ||
       code.contains('hike') ||
       code.contains('trail')) {
-    return 'assets/images/png/mountain rescue.png';
+    return 'assets/images/png/Mountain Rescue.png';
   }
 
   // Snake incidents
@@ -157,7 +157,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('reptile') ||
       code.contains('serpent') ||
       code.contains('bite')) {
-    return 'assets/images/png/snake.png';
+    return 'assets/images/png/Snake.png';
   }
 
   // Bee/insect incidents
@@ -167,7 +167,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('sting') ||
       code.contains('insect') ||
       code.contains('swarm')) {
-    return 'assets/images/png/bee.png';
+    return 'assets/images/png/Bee.png';
   }
 
   // Lockout incidents
@@ -175,11 +175,11 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('trapped') ||
       code.contains('stuck') ||
       code.contains('key')) {
-    return 'assets/images/png/lock out.png';
+    return 'assets/images/png/Lock Out.png';
   }
 
   // Default fallback for everything else
-  return 'assets/images/png/other hazard.png';
+  return 'assets/images/png/Other Hazard.png';
 }
 
 /// Keep old kSymbolCodesImages name for backward compatibility
