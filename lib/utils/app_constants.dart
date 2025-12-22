@@ -105,7 +105,7 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('accident') ||
       code.contains('collision') ||
       code.contains('vehicle')) {
-    return 'assets/images/png/car_crash.png';
+    return 'assets/images/png/car1.png';
   }
 
   // Hazmat incidents
