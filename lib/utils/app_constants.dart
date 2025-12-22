@@ -113,6 +113,7 @@ String getIconForSymbolCode(String symbolCode) {
   if (code.contains('chemical') ||
       code.contains('mryuk') ||
       code.contains('toxic') ||
+      code.contains('hazmat') ||
       code.contains('spill')) {
     return 'assets/images/png/hazmat.png';
   }
@@ -125,7 +126,6 @@ String getIconForSymbolCode(String symbolCode) {
   // Electrical hazards
   if (code.contains('zap') ||
       code.contains('electric') ||
-      code.contains('hazmat') ||
       code.contains('powerline') ||
       code.contains('power') ||
       code.contains('wire')) {
