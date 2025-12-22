@@ -5,6 +5,5 @@ import 'package:flutter/material.dart';
 extension ThemeExtensions on BuildContext {
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
   ThemeData get theme => Theme.of(this);
-
   AppColors get appColors => AppColors.of(this);
 }

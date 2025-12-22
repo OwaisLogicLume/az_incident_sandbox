@@ -263,7 +263,7 @@ class IncidentsProvider extends ChangeNotifier {
   }
 
   void changeSelectedSymbols(String symbolcode) {
-    if (_selectedSymbolCodes.contains(symbolcode)) {
+    if (_selectedSymbolCodes.contains(symbolcode)){
       _selectedSymbolCodes.remove(symbolcode);
     } else {
       _selectedSymbolCodes.add(symbolcode);

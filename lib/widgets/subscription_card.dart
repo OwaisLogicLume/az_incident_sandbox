@@ -5,7 +5,6 @@ import 'package:az_incident_alert/utils/extensions/context_ext.dart';
 import 'package:az_incident_alert/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 class SubscriptionPlanCard extends StatelessWidget {
   final Plan plan;
   final VoidCallback onTap;

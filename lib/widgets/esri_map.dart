@@ -11,7 +11,6 @@ import 'package:az_incident_alert/providers/incidents_provider.dart';
 import 'package:az_incident_alert/utils/app_constants.dart';
 import 'package:az_incident_alert/widgets/marker_sheet.dart';
 import 'package:image/image.dart' as img;
-
 class MapBoxWidget extends StatefulWidget {
   const MapBoxWidget({super.key, this.initialLatLng});
   final latlng.LatLng? initialLatLng;

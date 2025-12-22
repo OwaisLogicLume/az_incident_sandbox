@@ -107,7 +107,7 @@ class _TabScreenState extends State<TabScreen> with WidgetsBindingObserver {
                 bottom: false,
                 child: [
                   const IncidencesScreen(),
-                  MapScreen(latLng: context.read<IncidentsProvider>().currentLatLng),
+                 MapScreen(latLng: context.read<IncidentsProvider>().currentLatLng),
                 ][provider.currentIndex],
               ),
               bottomNavigationBar: NavigationBar(

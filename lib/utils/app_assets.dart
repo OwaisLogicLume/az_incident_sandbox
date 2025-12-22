@@ -2,9 +2,7 @@
 
 class AppAssets {
   AppAssets._();
-
   static const String _images = "assets/images";
-
   /// Symbol Images ///
   static const String defaultImage = "$_images/default.png";
   static const String airplane = "$_images/airplane.png";

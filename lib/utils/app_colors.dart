@@ -5,9 +5,7 @@ import 'package:provider/provider.dart';
 
 class AppColors {
   BuildContext context;
-
   AppColors._({required this.context});
-
   factory AppColors.of(BuildContext context) => AppColors._(context: context);
 
   static const transparent = Colors.transparent;

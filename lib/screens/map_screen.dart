@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:az_incident_alert/providers/incidents_provider.dart';
 import 'package:az_incident_alert/utils/app_constants.dart';
 import 'package:az_incident_alert/utils/shared_prefs.dart';
@@ -20,17 +23,22 @@ class MapScreen extends StatefulWidget {
 
   @override
   State<MapScreen> createState() => _MapScreenState();
-
   
 }
 
 class _MapScreenState extends State<MapScreen> {
   @override
+  void initState() {
+    // TODO: implement initState
+    print('Map Screen ${widget.latLng}');
+
+
+  }
+  @override
   Widget build(
     BuildContext context,
   ) {
     return AppScaffold(
-
       body: SafeArea(
         child: Stack(
           children: [
