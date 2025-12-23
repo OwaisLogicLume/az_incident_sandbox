@@ -1,6 +1,7 @@
 import 'package:az_incident_alert/screens/alert_screen.dart';
 import 'package:az_incident_alert/screens/incidents_screen.dart';
 import 'package:az_incident_alert/screens/map_screen.dart';
+import 'package:az_incident_alert/screens/rdioscanner_screen.dart';
 import 'package:az_incident_alert/screens/splash.dart';
 import 'package:az_incident_alert/screens/subscription_screen.dart';
 import 'package:az_incident_alert/screens/tabs.dart';
@@ -73,6 +74,15 @@ class AppNavigator {
           ),
         ),
       ),
+      GoRoute(
+        path: AppRoute.rdioscannerScreen.path,
+        name: AppRoute.rdioscannerScreen.name,
+        builder: (BuildContext context, GoRouterState state) =>
+            const InternetConnectivityWrapper(
+          child: RdioscannerScreen(),
+        ),
+      ),
+
       /*StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           indexedStackNavigationShell = navigationShell;
@@ -136,4 +146,5 @@ enum AppRoute {
   alertScreen,
   mapScreen,
   alerts,
+  rdioscannerScreen,
 }

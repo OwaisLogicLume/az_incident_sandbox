@@ -81,6 +81,9 @@ class _IncidencesScreenState extends State<IncidencesScreen> {
     return Consumer<IncidentsProvider>(builder: (context, provider, _) {
       return AppScaffold(
         appbarActions: [
+          IconButton(onPressed: (){
+           context.pushNamed(AppRoute.rdioscannerScreen.name);
+          }, icon: Icon(CupertinoIcons.speaker)),
           // IconButton(
           //   onPressed: () {
           //     logEvent();

@@ -25,7 +25,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
