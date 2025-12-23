@@ -49,3 +49,6 @@ app.*.map.json
 *.md
 *.html
 *.pdf
+android/key.properties
+upload-keystore.jks
+upload_certificate.pem
