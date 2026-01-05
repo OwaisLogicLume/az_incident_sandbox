@@ -66,7 +66,7 @@
   const PHOENIX_FIRE_API = "https://maps.phoenix.gov/phxfire/rest/services/Active_Incidents__Public/MapServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=100&where=1%3D1&orderByFields=Incident%20DESC&outFields=*&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryPoint";
 
   exports.notifyUsers = functions.pubsub
-    .schedule("every 1 minutes")
+    .schedule("every 2 minutes")
     .onRun(async (message) => {
       try {
         logger.log('═══════════════════════════════════');
@@ -91,6 +91,23 @@
           genLocInfo: feature.attributes.GenLocInfo,
         }));
 
+        // Get last-seen incident IDs to detect new incidents
+        const stateDoc = await firestore.collection("system").doc("incident_state").get();
+        const lastSeenIncidentIds = stateDoc.exists ? (stateDoc.data().lastSeenIds || []) : [];
+
+        // Find NEW incidents that haven't been seen before
+        const currentIncidentIds = incidents.map(inc => inc.id);
+        const newIncidents = incidents.filter(inc => !lastSeenIncidentIds.includes(inc.id));
+
+        logger.log(`📊 Total incidents: ${incidents.length}, New incidents: ${newIncidents.length}`);
+
+        // If no new incidents, skip user fetching entirely
+        if (newIncidents.length === 0) {
+          logger.log('✅ No new incidents - skipping user notifications');
+          return null;
+        }
+
+        // Only fetch users when there are NEW incidents to process
         const usersSnapshot = await firestore.collection("users").get();
         const users = usersSnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -98,7 +115,8 @@
         }));
 
         for (const user of users) {
-          const filteredIncidents = incidents
+          // Only process NEW incidents for each user
+          const filteredIncidents = newIncidents
             ?.filter(
               (incident) =>
                 !user.alerted_incidents.includes(incident.id) &&
@@ -203,6 +221,14 @@
             //   };
           }
         }
+
+        // Update state with current incident IDs for next check
+        await firestore.collection("system").doc("incident_state").set({
+          lastSeenIds: currentIncidentIds,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        logger.log('✅ Updated incident state for next check');
+
       } catch (error) {
         logger.error("Error fetching incidents or processing users:", error);
       }
