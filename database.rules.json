@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "incidents": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["objectid"]
+    },
+    "transformed_coordinates": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

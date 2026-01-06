@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users collection - allows Cloud Functions and app to manage users
+    match /users/{userId} {
+      // Anyone can read (Cloud Function needs to read all users for notifications)
+      allow read: if true;
+
+      // Can create with valid data structure
+      // App creates users with device_id, fcm, stations, alerted_incidents
+      allow create: if request.resource.data.keys().hasAll(['device_id', 'fcm', 'stations', 'alerted_incidents']);
+
+      // Allow updates (Cloud Function updates alerted_incidents, app updates stations)
+      allow update: if true;
+
+      // Allow delete (Cloud Function removes users with invalid FCM tokens)
+      allow delete: if true;
+    }
+
+    // System state - used by Cloud Functions to track last seen incidents
+    match /system/{document} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Deny all other paths by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
