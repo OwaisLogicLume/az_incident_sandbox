@@ -113,7 +113,9 @@ String getIconForSymbolCode(String symbolCode) {
       code.contains('mryuk') ||
       code.contains('toxic') ||
       code.contains('hazmat') ||
-      code.contains('spill')) {
+      code.contains('spill') ||
+      code.contains('gas') ||
+      code.contains('natural')) {
     return 'assets/images/png/hazmat.png';
   }
 

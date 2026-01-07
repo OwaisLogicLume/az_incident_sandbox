@@ -136,44 +136,33 @@ class _SplashScreenState extends State<SplashScreen> {
             ],
           ),
         ),
-        child: Stack(
-          children: [
-            // Cactus image - bottom aligned to screen center
-            Positioned(
-              bottom: screenHeight * 0.5, // Bottom of image at screen center
-              left: 0,
-              right: 0,
-              child: Image.asset(
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Cactus image
+              Image.asset(
                 'assets/images/png/Cactus_With_Light.png',
-                height: screenHeight * 0.4,
+                height: screenHeight * 0.3,
                 fit: BoxFit.contain,
               ),
-            ),
-            // Title - top aligned to bottom half start
-            Positioned(
-              top: screenHeight * 0.5, // Top of title at bottom half start
-              left: 0,
-              right: 0,
-              child: Column(
-                children: [
-                  // App Title
-                  Text(
-                    "Cactus Alert",
-                    style: textStyle22Bold.copyWith(
-                      fontSize: 42,
-                      color: const Color(0xFF5C2E1A), // Dark brown
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  // Loading Indicator
-                  const CircularProgressIndicator(
-                    color: Color(0xFF5C2E1A), // Dark brown
-                  ),
-                ],
+              const SizedBox(height: 32),
+              // App Title
+              Text(
+                "Cactus Alert",
+                style: textStyle22Bold.copyWith(
+                  fontSize: 42,
+                  color: const Color(0xFF5C2E1A), // Dark brown
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+              // Loading Indicator
+              const CircularProgressIndicator(
+                color: Color(0xFF5C2E1A), // Dark brown
+              ),
+            ],
+          ),
         ),
       ),
     );
